@@ -15,12 +15,20 @@ include("utils/atom-conf-features-extxyz.jl")
 # Data #########################################################################
 
 # Define paths and create experiment folder
-res_path  = "results-iso17/"
+res_path  = "results-hf/"
 run(`mkdir -p $res_path`)
 
-# Load training atomistic configurations (random subset of size N)
+# Load atomistic configurations (random subset of size N)
 N = 200
-file_paths = ["data/iso17/my_iso17_train.extxyz"]
+file_paths = ["data/Hf/Hf2_gas_form_sorted.extxyz",
+              "data/Hf/Hf2_mp103_EOS_1D_form_sorted.extxyz",
+              "data/Hf/Hf2_mp103_EOS_3D_form_sorted.extxyz",
+              "data/Hf/Hf2_mp103_EOS_6D_form_sorted.extxyz",
+              "data/Hf/Hf128_MC_rattled_mp100_form_sorted.extxyz",
+              "data/Hf/Hf128_MC_rattled_mp103_form_sorted.extxyz",
+              "data/Hf/Hf128_MC_rattled_random_form_sorted.extxyz",
+              "data/Hf/Hf_mp100_EOS_1D_form_sorted.extxyz",
+              "data/Hf/Hf_mp100_primitive_EOS_1D_form_sorted.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=N)
 chunk, _ = take!(ch)
 confs = []
@@ -32,42 +40,21 @@ end
 confs = DataSet(confs)
 
 # Define basis
-basis = ACE(species           = [:C, :O, :H],
-            body_order        = 4,
-            polynomial_degree = 12,
-            wL                = 2.0,
+basis = ACE(species           = [:Hf],
+            body_order        = 6,
+            polynomial_degree = 8,
+            rcutoff           = 5.0,
+            wL                = 1.0,
             csp               = 1.0,
-            r0                = 1.43,
-            rcutoff           = 4.4 );
+            r0                = 1.0);
 
-# Update training dataset by adding energy and force descriptors
+# Update dataset by adding energy and force descriptors
 println("Computing energy descriptors of dataset...")
 B_time = @elapsed e_descr = compute_local_descriptors(confs, basis)
 println("Computing force descriptors of dataset...")
 dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
 GC.gc()
-ds_train = DataSet(confs .+ e_descr .+ f_descr)
-
-# Load test atomistic configurations (random subset of size N)
-M = 100
-file_paths = ["data/iso17/my_iso17_train.extxyz"]
-ch = chunk_iterator(file_paths; chunksize=M)
-chunk, _ = take!(ch)
-confs = []
-for (system, energy, forces) in chunk
-    conf = Configuration(system, Energy(energy),
-           Forces([Force(f) for f in forces]))
-    push!(confs, conf)
-end
-confs = DataSet(confs)
-
-# Update test dataset by adding energy and force descriptors
-println("Computing energy descriptors of dataset...")
-B_time = @elapsed e_descr = compute_local_descriptors(confs, basis)
-println("Computing force descriptors of dataset...")
-dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
-GC.gc()
-ds_test = DataSet(confs .+ e_descr .+ f_descr)
+ds = DataSet(confs .+ e_descr .+ f_descr)
 
 
 # Sampling experiments #########################################################
@@ -98,12 +85,11 @@ for j in 1:n_experiments
     
     # Define randomized training and test dataset
     # A randomized 80% of each dataset is used in each experiment
-    n_train = floor(Int, 0.8*length(ds_train))
-    n_test = floor(Int, 0.8*length(ds_test))
-    inds_train = sortperm(1:length(ds_train))[1:n_train]
-    inds_test = sortperm(1:length(ds_test))[1:n_test]
-    ds_train_rnd = @views ds_train[inds_train]
-    ds_test_rnd  = @views ds_test[inds_test]
+    n_train = floor(Int, 0.8*length(ds))
+    inds_train = sortperm(1:length(ds))[1:n_train]
+    inds_test = sortperm(1:length(ds))[n_train+1:end]
+    ds_train_rnd = @views ds[inds_train]
+    ds_test_rnd  = @views ds[inds_test]
     ged = sum.(get_values.(get_local_descriptors.(ds_train_rnd)))
     ged_mat = stack(ged)'
     
