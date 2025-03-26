@@ -1,26 +1,37 @@
 # LSSampling
 include("../../src/lssampling.jl")
 
-# Generate synthetic data
-file_paths = ["data1.txt", "data2.txt", "data3.txt", "data4.txt"]
-points = generate_data(file_paths)
-
 # Sample size and dataset size
 n = 200
-N = 4000 # length(points)
+N = 4000
 
-# Sample by DPP
-features = hcat(points...)'
-K = pairwise(Euclidean(), features')
-dpp = EllEnsemble(K)
-rescale!(dpp, n)
-dpp_probs = Determinantal.inclusion_prob(dpp)
-dpp_indexes = Determinantal.sample(dpp, n)
+# Generate synthetic data
+file_paths = ["data1.txt", "data2.txt", "data3.txt", "data4.txt"]
+generate_data(file_paths; N=N, feature_size=50);
 
-# Sample by LSDPP
-lsdpp = LSDPP(file_paths; chunksize=500, max=N)
-lsdpp_probs = inclusion_prob(lsdpp, n)
-lsdpp_indexes = sample(lsdpp, n)
+# Sampling by DPP
+Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
+@time begin
+    ch = chunk_iterator(file_paths; chunksize=N)
+    chunk, _ = take!(ch)
+    features = create_features(chunk)
+    K = pairwise(Euclidean(), features')
+    dpp = EllEnsemble(K)
+    rescale!(dpp, n)
+    dpp_probs = Determinantal.inclusion_prob(dpp)
+    dpp_indexes = Determinantal.sample(dpp, n)
+end
+chunk = nothing;
+features = nothing;
+GC.gc()
+
+# Sampling by LSDPP
+Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
+@time begin
+    lsdpp = LSDPP(file_paths; chunksize=500, max=N)
+    lsdpp_probs = inclusion_prob(lsdpp, n)
+    lsdpp_indexes = sample(lsdpp, n)
+end
 
 # Tests and plots
 

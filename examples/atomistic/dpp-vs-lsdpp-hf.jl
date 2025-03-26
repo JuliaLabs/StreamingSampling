@@ -24,7 +24,7 @@ file_paths = ["data/Hf/Hf2_gas_form_sorted.extxyz",
               "data/Hf/Hf_mp100_EOS_1D_form_sorted.extxyz",
               "data/Hf/Hf_mp100_primitive_EOS_1D_form_sorted.extxyz"]
 
-# Sample size
+# Sample size and dataset size
 n = 200
 N = 6000
 

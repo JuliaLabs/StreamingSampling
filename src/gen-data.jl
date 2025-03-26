@@ -1,6 +1,6 @@
 # Synthetic data generation
 
-function generate_data(file_paths::Vector{String}; feature_size=50)
+function generate_data(file_paths::Vector{String}; N=4000, feature_size=50)
     # Define an feature_size-dimensional mean vector
     mu = zeros(feature_size)
     # Define an feature_size x feature_size covariance matrix
@@ -11,7 +11,7 @@ function generate_data(file_paths::Vector{String}; feature_size=50)
     # Create synthetic files
     for (i, path) in enumerate(file_paths)
         open(path, "w") do io
-            for j in 1:1000
+            for j in 1:N÷length(file_paths)
                 p = rand(mvnorm)
                 if rand() < 0.04
                     p .+= rand(-4:4, feature_size)

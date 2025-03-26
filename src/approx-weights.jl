@@ -29,14 +29,14 @@ function compute_weights(sampler::Sampler, file_paths::Vector{String};
         feature_global_indexes[features_to_update] .= new_chunk_global_indexes
         
         curr_feature_weights = compute_weights(sampler, features)
-        for i in 1:2M
+        for i in 1:2chunksize
             if i in features_to_update
                 feature_weights[i] = curr_feature_weights[i]
             else
                 feature_weights[i] = (feature_weights[i]+curr_feature_weights[i])/2
             end
         end
-        feature_weights .= curr_feature_weights
+        #feature_weights .= curr_feature_weights
         
         append!(global_weights, zeros(new_chunksize))
         global_weights[feature_global_indexes] .= feature_weights

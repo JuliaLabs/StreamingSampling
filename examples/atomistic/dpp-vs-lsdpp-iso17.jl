@@ -16,7 +16,7 @@ basis = ACE(species           = [:C, :O, :H],
 # Data
 file_paths = ["data/iso17/my_iso17_train.extxyz"]
 
-# Sample size
+# Sample size and dataset size
 n = 200
 N = 6000
 
