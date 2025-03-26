@@ -7,14 +7,11 @@ include("utils/atom-conf-features-xyz.jl")
 # Basis function to compute ACE descriptors (features)
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 5,
+            polynomial_degree = 4,
             rcutoff           = 5.0,
             wL                = 1.0,
             csp               = 1.0,
             r0                = 1.0);
-
-# Fix random seed to compare DPP and LSDPP (get same random chunks)
-Random.seed!(42)
 
 # Data
 file_paths = ["data/aspirin/aspirin.xyz"]
@@ -24,6 +21,7 @@ n = 200
 N = 6000
 
 # Sampling by DPP
+Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
 @time begin
     ch = chunk_iterator(file_paths; chunksize=N)
     chunk, _ = take!(ch)
@@ -39,8 +37,9 @@ features = nothing;
 GC.gc()
 
 # Sampling by LSDPP
+Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
 @time begin
-    lsdpp = LSDPP(file_paths; chunksize=1000, max=N)
+    lsdpp = LSDPP(file_paths; chunksize=2000, max=N)
     lsdpp_probs = inclusion_prob(lsdpp, n)
     lsdpp_indexes = sample(lsdpp, n)
 end
@@ -53,7 +52,7 @@ scatter(dpp_probs, lsdpp_probs, color="red", alpha=0.5)
 plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
 plot!(ylabel="LSDPP inclusion probabilities")
-plot!(legend=false, xscale=:log10, yscale=:log10, dpi=300)
+plot!(legend=false, dpi=300)
 savefig("dpp-probs-vs-lsdpp-probs-aspirin.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
@@ -64,7 +63,7 @@ scatter(dpp_probs, lsdpp_freqs, color="red", alpha=0.5)
 plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
 plot!(ylabel="LSDPP inclusion frequencies")
-plot!(legend=false, xscale=:log10, yscale=:log10, dpi=300)
+plot!(legend=false, dpi=300)
 savefig("dpp-probs-vs-lsdpp-freqs-aspirin.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 

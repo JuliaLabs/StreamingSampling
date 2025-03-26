@@ -24,7 +24,7 @@ function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=200)
         end
         
         # Randomize
-        inds = sortperm(file_numbers)
+        inds = randperm(length(file_numbers))
         file_numbers = file_numbers[inds]
         file_positions = file_positions[inds]
         

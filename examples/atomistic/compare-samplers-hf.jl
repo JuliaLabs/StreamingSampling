@@ -86,8 +86,8 @@ for j in 1:n_experiments
     # Define randomized training and test dataset
     # A randomized 80% of each dataset is used in each experiment
     n_train = floor(Int, 0.8*length(ds))
-    inds_train = sortperm(1:length(ds))[1:n_train]
-    inds_test = sortperm(1:length(ds))[n_train+1:end]
+    inds_train = randperm(length(ds))[1:n_train]
+    inds_test = randperm(length(ds))[n_train+1:end]
     ds_train_rnd = @views ds[inds_train]
     ds_test_rnd  = @views ds[inds_test]
     ged = sum.(get_values.(get_local_descriptors.(ds_train_rnd)))
