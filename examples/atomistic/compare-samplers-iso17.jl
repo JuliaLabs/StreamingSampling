@@ -53,12 +53,13 @@ basis = ACE(species           = [:C, :O, :H],
             rcutoff           = 4.4 );
 
 # Update training dataset by adding energy and force descriptors
-println("Computing energy descriptors of dataset...")
-B_time = @elapsed e_descr = compute_local_descriptors(confs, basis)
-println("Computing force descriptors of dataset...")
-dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
-GC.gc()
-ds_train = DataSet(confs .+ e_descr .+ f_descr)
+#println("Computing energy descriptors of dataset...")
+#B_time = @elapsed e_descr = compute_local_descriptors(confs, basis)
+#println("Computing force descriptors of dataset...")
+#dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
+#GC.gc()
+#ds_train = DataSet(confs .+ e_descr .+ f_descr)
+ds_train = deepcopy(confs)
 
 # Load test atomistic configurations (random subset of size N)
 M = 100
@@ -76,12 +77,13 @@ confs = DataSet(confs)
 # Note, I don't modify the test set energies !!!
 
 # Update test dataset by adding energy and force descriptors
-println("Computing energy descriptors of dataset...")
-B_time = @elapsed e_descr = compute_local_descriptors(confs, basis)
-println("Computing force descriptors of dataset...")
-dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
-GC.gc()
-ds_test = DataSet(confs .+ e_descr .+ f_descr)
+#println("Computing energy descriptors of dataset...")
+#B_time = @elapsed e_descr = compute_local_descriptors(confs, basis)
+#println("Computing force descriptors of dataset...")
+#dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
+#GC.gc()
+#ds_test = DataSet(confs .+ e_descr .+ f_descr)
+ds_test = deepcopy(confs)
 
 
 # Sampling experiments #########################################################

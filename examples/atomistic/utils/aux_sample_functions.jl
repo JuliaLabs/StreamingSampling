@@ -7,10 +7,10 @@ function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
 
     # Learn
     lb = PotentialLearning.LBasisPotential(basis)
-    ws, int = [30.0, 1.0], true
-    learn!(lb, ds_train, ws, int)
+    # no intercept , out-of-core formulation of linear learn
+    ws = [30.0, 1.0]
+    _AtWA, _AtWb = PotentialLearning.ooc_learn!(lb, ds_train;ws=ws,symmetrize=false, λ=0.01)
     @save_var path lb.β
-    @save_var path lb.β0
 
     # Post-process output: calculate metrics, create plots, and save results #######
 
