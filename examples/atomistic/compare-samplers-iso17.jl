@@ -11,6 +11,7 @@ include("utils/aux_sample_functions.jl")
 include("utils/plots.jl")
 include("utils/plotmetrics.jl")
 include("utils/atom-conf-features-extxyz.jl")
+include("utils/subtract_peratom_e.jl")
 
 # Data #########################################################################
 
@@ -30,6 +31,17 @@ for (system, energy, forces) in chunk
     push!(confs, conf)
 end
 confs = DataSet(confs)
+
+# For ISO17, all confs have the same number of atoms
+num_atoms = length(get_system(ds_train[1]))
+all_energies = get_all_energies(confs)
+avg_energy_per_atoms = mean(all_energies)/num_atoms 
+vref_dict = Dict(:H => avg_energy_per_atom,
+                 :C => avg_energy_per_atom,
+                 :O => avg_energy_per_atom) 
+
+# This will permanently change the energies in the entire dataset !!!
+adjust_energies(confs,vref_dict)
 
 # Define basis
 basis = ACE(species           = [:C, :O, :H],
@@ -60,6 +72,8 @@ for (system, energy, forces) in chunk
     push!(confs, conf)
 end
 confs = DataSet(confs)
+
+# Note, I don't modify the test set energies !!!
 
 # Update test dataset by adding energy and force descriptors
 println("Computing energy descriptors of dataset...")
@@ -111,7 +125,7 @@ for j in 1:n_experiments
     for batch_size_prop in batch_size_props
         for sampler in samplers
             sample_experiment!(res_path, j, sampler, batch_size_prop, n_train, 
-                               ged_mat, ds_train_rnd, ds_test_rnd, basis, metrics)
+                               ged_mat, ds_train_rnd, ds_test_rnd, basis, metrics; vref_dict=vref_dict)
             GC.gc()
         end
     end

@@ -1,8 +1,9 @@
 # Functions for performing sampling comparisons
 
+include("./subtract_peratom_e.jl")
 
 # Fit function used to get errors based on sampling
-function fit(path, ds_train, ds_test, basis)
+function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
 
     # Learn
     lb = PotentialLearning.LBasisPotential(basis)
@@ -16,9 +17,15 @@ function fit(path, ds_train, ds_test, basis)
     # Get true and predicted values
     n_atoms_train = length.(get_system.(ds_train))
     n_atoms_test = length.(get_system.(ds_test))
-
-    e_train, e_train_pred = get_all_energies(ds_train) ./ n_atoms_train,
-                            get_all_energies(ds_train, lb) ./ n_atoms_train
+    
+    # training energies were permanently modified, so need special function to recover original energies and predicted energies
+    if !isnothing(vref_dict)
+        e_train = get_all_energies_w_onebody(ds_train,vref_dict) ./n_atoms_train
+        e_train_pred = get_all_energies_w_onebody(ds_train,lb,vref_dict) ./n_atoms_train
+    else
+        e_train, e_train_pred = get_all_energies(ds_train) ./ n_atoms_train,
+                                get_all_energies(ds_train, lb) ./ n_atoms_train
+    end
     f_train, f_train_pred = get_all_forces(ds_train),
                             get_all_forces(ds_train, lb)
     @save_var path e_train
@@ -26,8 +33,15 @@ function fit(path, ds_train, ds_test, basis)
     @save_var path f_train
     @save_var path f_train_pred
 
-    e_test, e_test_pred = get_all_energies(ds_test) ./ n_atoms_test,
-                          get_all_energies(ds_test, lb) ./ n_atoms_test
+    # test energies were *not* permanently modified, so only need special function update predicted energies 
+    if !isnothing(vref_dict)
+        e_test = get_all_energies(ds_test) ./ n_atoms_test
+        e_test_pred = get_all_energies_w_onebody(ds_test,lb,vref_dict) ./n_atoms_test
+    else
+        e_test, e_test_pred = get_all_energies(ds_test) ./ n_atoms_test,
+                              get_all_energies(ds_test, lb) ./ n_atoms_test
+    end
+
     f_test, f_test_pred = get_all_forces(ds_test),
                           get_all_forces(ds_test, lb)
     @save_var path e_test
@@ -84,7 +98,7 @@ end
 
 # Main sample experiment function
 function sample_experiment!(res_path, j, sampler, batch_size_prop, n_train, 
-                            ged_mat, ds_train_rnd, ds_test_rnd, basis, metrics)
+                            ged_mat, ds_train_rnd, ds_test_rnd, basis, metrics; vref_dict=nothing)
     try
         print("Experiment:$j, method:$sampler, batch_size_prop:$batch_size_prop")
         exp_path = "$res_path/$j-$sampler-bsp$batch_size_prop/"
@@ -93,7 +107,7 @@ function sample_experiment!(res_path, j, sampler, batch_size_prop, n_train,
         sampling_time = @elapsed begin
             inds = sampler(ged_mat, batch_size)
         end
-        metrics_j = fit(exp_path, (@views ds_train_rnd[Int64.(inds)]), ds_test_rnd, basis)
+        metrics_j = fit(exp_path, (@views ds_train_rnd[Int64.(inds)]), ds_test_rnd, basis; vref_dict=vref_dict)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$sampler",
                                       "batch_size_prop" => batch_size_prop,
