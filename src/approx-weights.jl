@@ -29,17 +29,30 @@ function compute_weights(sampler::Sampler, file_paths::Vector{String};
         feature_global_indexes[features_to_update] .= new_chunk_global_indexes
         
         curr_feature_weights = compute_weights(sampler, features)
+        ws = Float64[]; ws_curr = Float64[];
         for i in 1:2chunksize
             if i in features_to_update
                 feature_weights[i] = curr_feature_weights[i]
             else
+                push!(ws, feature_weights[i])
+                push!(ws_curr, curr_feature_weights[i])
                 feature_weights[i] = (feature_weights[i]+curr_feature_weights[i])/2
             end
         end
         #feature_weights .= curr_feature_weights
         
+        W = [ws ones(length(ws))]
+        a, b = W \ ws_curr
+        curr_weight(x) = a*x+b
+
         append!(global_weights, zeros(new_chunksize))
         global_weights[feature_global_indexes] .= feature_weights
+        for i in 1:length(global_weights)
+            if !(i in feature_global_indexes)
+                global_weights[i] = (global_weights[i]+curr_weight(global_weights[i]))/2
+            end
+        end
+        
         @printf("Iteration %d complete. Current number of weights: %d.\n", 
                 iteration, length(global_weights))
         iteration += 1
