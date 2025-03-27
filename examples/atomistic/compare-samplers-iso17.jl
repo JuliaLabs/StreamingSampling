@@ -20,7 +20,7 @@ res_path  = "results-iso17/"
 run(`mkdir -p $res_path`)
 
 # Load training atomistic configurations (random subset of size N)
-N = 1000
+N = 5000
 file_paths = ["data/iso17/my_iso17_train.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=N)
 chunk, _ = take!(ch)
@@ -61,7 +61,7 @@ GC.gc()
 ds_train = DataSet(confs .+ e_descr .+ f_descr)
 
 # Load test atomistic configurations (random subset of size N)
-M = 500
+M = 1000
 file_paths = ["data/iso17/my_iso17_test.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=M)
 chunk, _ = take!(ch)

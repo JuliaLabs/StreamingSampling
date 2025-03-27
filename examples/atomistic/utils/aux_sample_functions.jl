@@ -6,7 +6,7 @@ include("./subtract_peratom_e.jl")
 function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
 
     # Learn
-    lb = PotentialLearning.LBasisPotential(basis)examples/atomistic/utils/aux_sample_functions.jl
+    lb = PotentialLearning.LBasisPotential(basis)
     ws, int = [30.0, 1.0], true
     learn!(lb, ds_train, ws, int)
     @save_var path lb.β
@@ -108,7 +108,8 @@ function sample_experiment!(res_path, j, curr_sampler, batch_size_prop, n_train,
         sampling_time = @elapsed begin
             inds = curr_sampler(ged_mat, batch_size)
         end
-        metrics_j = fit(exp_path, (@views ds_train_rnd[Int64.(inds)]), ds_test_rnd, basis; vref_dict=vref_dict)
+        metrics_j = fit(exp_path, (@views ds_train_rnd[Int64.(inds)]),
+                        ds_test_rnd, basis; vref_dict=vref_dict)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
                                       "batch_size_prop" => batch_size_prop,
