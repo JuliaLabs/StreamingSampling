@@ -11,15 +11,15 @@ include("utils/aux_sample_functions.jl")
 include("utils/plots.jl")
 include("utils/plotmetrics.jl")
 include("utils/atom-conf-features-extxyz.jl")
+include("utils/xyz.jl")
 
 # Data #########################################################################
 
 # Define paths and create experiment folder
-res_path  = "results-hf/"
+res_path  = "results-hf-balanced/"
 run(`mkdir -p $res_path`)
 
 # Load atomistic configurations (random subset of size N)
-N = 5000
 file_paths = ["data/Hf/Hf2_gas_form_sorted.extxyz",
               "data/Hf/Hf2_mp103_EOS_1D_form_sorted.extxyz",
               "data/Hf/Hf2_mp103_EOS_3D_form_sorted.extxyz",
@@ -29,24 +29,30 @@ file_paths = ["data/Hf/Hf2_gas_form_sorted.extxyz",
               "data/Hf/Hf128_MC_rattled_random_form_sorted.extxyz",
               "data/Hf/Hf_mp100_EOS_1D_form_sorted.extxyz",
               "data/Hf/Hf_mp100_primitive_EOS_1D_form_sorted.extxyz"]
-ch = chunk_iterator(file_paths; chunksize=N)
-chunk, _ = take!(ch)
+
 confs = []
-for (system, energy, forces) in chunk
-    conf = Configuration(system, Energy(energy),
-           Forces([Force(f) for f in forces]))
-    push!(confs, conf)
+confsizes = zeros(Int, length(file_paths))
+for (i, ds_path) in enumerate(file_paths)
+    newconfs = load_data(ds_path, uparse("eV"), uparse("Å"))
+    push!(confs, newconfs...)
+    confsizes[i] = length(newconfs)
+end
+offsets = zeros(Int, length(file_paths))
+for i in 2:length(file_paths)
+    offsets[i] = confsizes[i-1] + offsets[i-1]
 end
 confs = DataSet(confs)
+N = length(confs)
+GC.gc()
 
 # Define basis
 basis = ACE(species           = [:Hf],
-            body_order        = 5,
-            polynomial_degree = 10,
-            rcutoff           = 6.0,
+            body_order        = 2,#5,
+            polynomial_degree = 3,#10,
+            rcutoff           = 4,#6.0,
             wL                = 1.0,
             csp               = 1.0,
-            r0                = 1.0)
+            r0                = 1.0);
 
 # Update dataset by adding energy and force descriptors
 println("Computing energy descriptors of dataset...")
@@ -60,11 +66,11 @@ ds = DataSet(confs .+ e_descr .+ f_descr)
 # Sampling experiments #########################################################
 
 # Define number of experiments
-n_experiments = 100
+n_experiments = 40
 
 # Define samplers
 #samplers = [simple_random_sample, dbscan_sample, kmeans_sample, 
-#            cur_sample, dpp_sample, lrdpp_sample]
+#            cur_sample, dpp_sample, lrdpp_sample, lsdpp_sample]
 samplers = [simple_random_sample, kmeans_sample, cur_sample,
             dpp_sample, lrdpp_sample, lsdpp_sample]
 
@@ -84,12 +90,21 @@ metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 for j in 1:n_experiments
     global metrics
     
-    # Define randomized training and test dataset
-    n_train = floor(Int, 0.8*length(ds))
-    inds_train = randperm(length(ds))[1:n_train]
-    inds_test = randperm(length(ds))[n_train+1:end]
-    ds_train_rnd = @views ds[inds_train]
-    ds_test_rnd  = @views ds[inds_test]
+    # Define randomized training and test dataset.
+    # Here, both datasets have elements of each file.
+    rnd_inds_train = Int[]
+    rnd_inds_test = Int[]
+    for (i, ni) in enumerate(confsizes)
+        n_train_i = floor(Int, 0.8 * ni)
+        n_test_i = ni - n_train_i
+        rnd_inds = randperm(ni) .+ offsets[i]
+        push!(rnd_inds_train, rnd_inds[1:n_train_i]...)
+        push!(rnd_inds_test, rnd_inds[n_train_i+1:n_train_i+n_test_i]...)
+    end
+    ds_train_rnd = @views ds[rnd_inds_train]
+    ds_test_rnd  = @views ds[rnd_inds_test]
+    n_train = length(ds_train_rnd)
+    n_test = length(ds_test_rnd)
     ged = sum.(get_values.(get_local_descriptors.(ds_train_rnd)))
     ged_mat = stack(ged)'
     

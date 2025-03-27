@@ -1,4 +1,5 @@
 using PotentialLearning
+import PotentialLearning.BasisPotential
 
 function subtract_peratom_e(config::Configuration, vref_dict)
     orig_e = get_energy(config)
@@ -46,7 +47,7 @@ function get_all_energies_w_onebody(
         energy = get_values(get_energy(config))
         for atom in get_system(config).particles
             species = atom.atomic_symbol
-            energy += vref_dict[species]          
+            energy += vref_dict[species]
         end
         push!(energies, energy)
     end
