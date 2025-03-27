@@ -82,7 +82,7 @@ function chunk_iterator_seq(file_paths::Vector{String}; chunksize=200, buffersiz
     end
 end
 
-function chunk_iterator(A::Matrix; chunksize=200, buffersize=32, randomized=true)
+function chunk_iterator(A::Matrix; chunksize=2000, buffersize=32, randomized=true)
     N = size(A, 1)
     inds = randomized ? randperm(N) : collect(1:N)
     n_chunks = ceil(Int, N / chunksize)

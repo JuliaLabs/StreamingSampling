@@ -66,7 +66,8 @@ end
 function lsdpp_sample(A, n; chunksize=2000, buffersize=32,
                       max=Inf, randomized=false)
     N = size(A, 1)
-    lsdpp = LSDPP(Matrix(A); chunksize=min(N,chunksize),
+    N′ = ceil(Int, N/2)
+    lsdpp = LSDPP(Matrix(A); chunksize=min(N′, chunksize),
                   max=max, randomized=randomized)
     inds = sample(lsdpp, n)
     return inds
