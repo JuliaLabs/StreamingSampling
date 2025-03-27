@@ -20,7 +20,7 @@ res_path  = "results-iso17/"
 run(`mkdir -p $res_path`)
 
 # Load training atomistic configurations (random subset of size N)
-N = 200
+N = 30_000
 file_paths = ["data/iso17/my_iso17_train.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=N)
 chunk, _ = take!(ch)
@@ -32,17 +32,21 @@ for (system, energy, forces) in chunk
 end
 confs = DataSet(confs)
 
+# For ISO17, all confs have the same number of atoms
+num_atoms = length(get_system(confs[1]))
+all_energies = get_all_energies(confs)
+avg_energy_per_atom = mean(all_energies)/num_atoms 
+vref_dict = Dict(:H => avg_energy_per_atom,
+                 :C => avg_energy_per_atom,
+                 :O => avg_energy_per_atom) 
+
+# This will permanently change the energies in the entire dataset !!!
+adjust_energies(confs,vref_dict)
+
 # Define basis
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
             polynomial_degree = 12,
-            wL                = 2.0,
-            csp               = 1.0,
-            r0                = 1.43,
-            rcutoff           = 4.4 );
-basis = ACE(species           = [:C, :O, :H],
-            body_order        = 2,
-            polynomial_degree = 3,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
@@ -56,20 +60,8 @@ dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
 GC.gc()
 ds_train = DataSet(confs .+ e_descr .+ f_descr)
 
-
-# For ISO17, all confs have the same number of atoms
-num_atoms = length(get_system(ds_train[1]))
-all_energies = get_all_energies(ds_train)
-avg_energy_per_atom = mean(all_energies)/num_atoms 
-vref_dict = Dict(:H => avg_energy_per_atom,
-                 :C => avg_energy_per_atom,
-                 :O => avg_energy_per_atom) 
-
-# This will permanently change the energies in the entire dataset !!!
-adjust_energies(confs,vref_dict)
-
 # Load test atomistic configurations (random subset of size N)
-M = 100
+M = 10_000
 file_paths = ["data/iso17/my_iso17_test.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=M)
 chunk, _ = take!(ch)
@@ -104,8 +96,8 @@ samplers = [simple_random_sample, kmeans_sample, cur_sample,
             dpp_sample, lrdpp_sample, lsdpp_sample]
 
 # Define batch sample sizes (proportions)
-#batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]
-batch_size_props = [0.08, 0.16, 0.32, 0.64]
+batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]
+#batch_size_props = [0.08, 0.16, 0.32, 0.64]
 
 # Create metric dataframe
 metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
