@@ -2,4 +2,5 @@
 *.txt
 examples/atomistic/data/
 examples/atomistic/results-hf/
+examples/atomistic/results-hf-balanced/
 examples/atomistic/results-iso17/
