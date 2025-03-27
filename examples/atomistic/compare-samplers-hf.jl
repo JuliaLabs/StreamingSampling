@@ -19,7 +19,7 @@ res_path  = "results-hf/"
 run(`mkdir -p $res_path`)
 
 # Load atomistic configurations (random subset of size N)
-N = 200
+N = 5000
 file_paths = ["data/Hf/Hf2_gas_form_sorted.extxyz",
               "data/Hf/Hf2_mp103_EOS_1D_form_sorted.extxyz",
               "data/Hf/Hf2_mp103_EOS_3D_form_sorted.extxyz",
@@ -65,7 +65,7 @@ n_experiments = 40
 # Define samplers
 #samplers = [simple_random_sample, dbscan_sample, kmeans_sample, 
 #            cur_sample, dpp_sample, lrdpp_sample]
-samplers = [simple_random_sample, kmeans_sample, cur_sample, dpp_sample]
+samplers = [simple_random_sample, kmeans_sample, cur_sample, dpp_sample, lsdpp_sample]
 
 # Define batch sample sizes (proportions)
 #batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]
@@ -95,8 +95,8 @@ for j in 1:n_experiments
     
     # Sampling experiments
     for batch_size_prop in batch_size_props
-        for sampler in samplers
-            sample_experiment!(res_path, j, sampler, batch_size_prop, n_train, 
+        for curr_sampler in samplers
+            sample_experiment!(res_path, j, curr_sampler, batch_size_prop, n_train, 
                                ged_mat, ds_train_rnd, ds_test_rnd, basis, metrics)
             GC.gc()
         end

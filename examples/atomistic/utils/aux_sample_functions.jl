@@ -6,7 +6,7 @@ include("./subtract_peratom_e.jl")
 function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
 
     # Learn
-    lb = PotentialLearning.LBasisPotential(basis)
+    lb = PotentialLearning.LBasisPotential(basis)examples/atomistic/utils/aux_sample_functions.jl
     ws, int = [30.0, 1.0], true
     learn!(lb, ds_train, ws, int)
     @save_var path lb.β
@@ -97,19 +97,20 @@ function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
 end
 
 # Main sample experiment function
-function sample_experiment!(res_path, j, sampler, batch_size_prop, n_train, 
-                            ged_mat, ds_train_rnd, ds_test_rnd, basis, metrics; vref_dict=nothing)
+function sample_experiment!(res_path, j, curr_sampler, batch_size_prop, n_train, 
+                            ged_mat, ds_train_rnd, ds_test_rnd, basis, metrics;
+                            vref_dict=nothing)
     try
-        print("Experiment:$j, method:$sampler, batch_size_prop:$batch_size_prop")
-        exp_path = "$res_path/$j-$sampler-bsp$batch_size_prop/"
+        print("Experiment:$j, method:$curr_sampler, batch_size_prop:$batch_size_prop")
+        exp_path = "$res_path/$j-$curr_sampler-bsp$batch_size_prop/"
         run(`mkdir -p $exp_path`)
         batch_size = floor(Int, n_train * batch_size_prop)
         sampling_time = @elapsed begin
-            inds = sampler(ged_mat, batch_size)
+            inds = curr_sampler(ged_mat, batch_size)
         end
         metrics_j = fit(exp_path, (@views ds_train_rnd[Int64.(inds)]), ds_test_rnd, basis; vref_dict=vref_dict)
         metrics_j = merge(OrderedDict("exp_number" => j,
-                                      "method" => "$sampler",
+                                      "method" => "$curr_sampler",
                                       "batch_size_prop" => batch_size_prop,
                                       "batch_size" => batch_size,
                                       "time" => sampling_time),

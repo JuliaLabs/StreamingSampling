@@ -4,10 +4,21 @@ mutable struct LSDPP <: Sampler
     weights::Vector{Float64}
     chunksize::Int
 
-    function LSDPP(file_paths::Vector{String}; chunksize=200, max=Inf)
+    function LSDPP(file_paths::Vector{String}; chunksize=200, buffersize=32,
+                   max=Inf, randomized=true)
         lsdpp = new(Vector{Float64}(), chunksize)
-        lsdpp.weights = compute_weights(lsdpp, file_paths;
-                                        chunksize=chunksize, max=max)
+        lsdpp.weights = compute_weights(lsdpp, file_paths; chunksize=chunksize,
+                                        buffersize=buffersize, max=max,
+                                        randomized=true)
+        return lsdpp
+    end
+    
+    function LSDPP(A::Matrix; chunksize=200, buffersize=32,
+                   max=Inf, randomized=true)
+        lsdpp = new(Vector{Float64}(), chunksize)
+        lsdpp.weights = compute_weights(lsdpp, A; chunksize=chunksize,
+                                        buffersize=buffersize, max=max,
+                                        randomized=randomized)
         return lsdpp
     end
 end
@@ -17,7 +28,7 @@ function compute_weights(sampler::LSDPP, features::Matrix{Float64})
     # Get number of features
     N, _ = size(features)
     # Compute pairwise Euclidean distances on the transposed features
-    K = pairwise(Euclidean(), features')
+    K = pairwise(Distances.Euclidean(), features')
     # Form an L-ensemble based on the kernel matrix K
     dpp = EllEnsemble(K)
     # Scale so that the expected size is 1

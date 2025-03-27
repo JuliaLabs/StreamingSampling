@@ -1,10 +1,22 @@
 # Weight computation: used to compute inclusion probabilities and sampling
 
 function compute_weights(sampler::Sampler, file_paths::Vector{String};
-                         chunksize=200, max=Inf)
+                         chunksize=200, buffersize=32, max=Inf, randomized=true)
+    ch = chunk_iterator(file_paths; chunksize=chunksize, buffersize=buffersize, 
+                        randomized=true)
+    return compute_weights(sampler, ch; chunksize=chunksize, max=max)
+end
+
+function compute_weights(sampler::Sampler, A::Matrix; chunksize=200,
+                         buffersize=32, max=Inf, randomized=true)
+    ch = chunk_iterator(A; chunksize=chunksize, buffersize=buffersize,
+                        randomized=randomized)
+    return compute_weights(sampler, ch; chunksize=chunksize, max=max)
+end
+
+function compute_weights(sampler::Sampler, ch::Channel; chunksize=200, max=Inf)
 
     @printf("Computing sampler weights...\n")
-    ch = chunk_iterator(file_paths; chunksize=chunksize)
     
     # First iteration
     @printf("Starting first iteration...\n")
@@ -23,7 +35,7 @@ function compute_weights(sampler::Sampler, file_paths::Vector{String};
     while length(global_weights)<max && isready(ch)
         new_chunk, new_chunk_global_indexes = take!(ch)
         @printf("Starting iteration %d...\n", iteration)
-        new_chunksize = length(new_chunk)
+        new_chunksize = size(new_chunk, 1)
         features_to_update = shuffle(collect(1:2chunksize))[1:new_chunksize]
         features[features_to_update, :] .= create_features(new_chunk)
         feature_global_indexes[features_to_update] .= new_chunk_global_indexes
