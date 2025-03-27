@@ -1,20 +1,20 @@
 # Weight computation: used to compute inclusion probabilities and sampling
 
 function compute_weights(sampler::Sampler, file_paths::Vector{String};
-                         chunksize=200, buffersize=32, max=Inf, randomized=true)
+                         chunksize=2000, buffersize=32, max=Inf, randomized=true)
     ch = chunk_iterator(file_paths; chunksize=chunksize, buffersize=buffersize, 
-                        randomized=true)
+                        randomized=randomized)
     return compute_weights(sampler, ch; chunksize=chunksize, max=max)
 end
 
-function compute_weights(sampler::Sampler, A::Matrix; chunksize=200,
+function compute_weights(sampler::Sampler, A::Matrix; chunksize=2000,
                          buffersize=32, max=Inf, randomized=true)
     ch = chunk_iterator(A; chunksize=chunksize, buffersize=buffersize,
                         randomized=randomized)
     return compute_weights(sampler, ch; chunksize=chunksize, max=max)
 end
 
-function compute_weights(sampler::Sampler, ch::Channel; chunksize=200, max=Inf)
+function compute_weights(sampler::Sampler, ch::Channel; chunksize=2000, max=Inf)
 
     @printf("Computing sampler weights...\n")
     

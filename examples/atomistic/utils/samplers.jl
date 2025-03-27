@@ -3,6 +3,7 @@
 using Clustering
 using Determinantal
 using LowRankApprox
+using DelimitedFiles
 
 # Simple random sampling
 function simple_random_sample(A, n)
@@ -62,11 +63,11 @@ end
 function create_features(chunk::Matrix)
     return chunk
 end
-function lsdpp_sample(A, n; chunksize=1000, buffersize=32,
+function lsdpp_sample(A, n; chunksize=2000, buffersize=32,
                       max=Inf, randomized=false)
-
     N = size(A, 1)
-    lsdpp = LSDPP(Matrix(A); chunksize=min(N,chunksize), max=Inf, randomized=false)
+    lsdpp = LSDPP(Matrix(A); chunksize=min(N,chunksize),
+                  max=max, randomized=randomized)
     inds = sample(lsdpp, n)
     return inds
 end

@@ -4,16 +4,16 @@ mutable struct LSDPP <: Sampler
     weights::Vector{Float64}
     chunksize::Int
 
-    function LSDPP(file_paths::Vector{String}; chunksize=200, buffersize=32,
+    function LSDPP(file_paths::Vector{String}; chunksize=2000, buffersize=32,
                    max=Inf, randomized=true)
         lsdpp = new(Vector{Float64}(), chunksize)
         lsdpp.weights = compute_weights(lsdpp, file_paths; chunksize=chunksize,
                                         buffersize=buffersize, max=max,
-                                        randomized=true)
+                                        randomized=randomized)
         return lsdpp
     end
     
-    function LSDPP(A::Matrix; chunksize=200, buffersize=32,
+    function LSDPP(A::Matrix; chunksize=2000, buffersize=32,
                    max=Inf, randomized=true)
         lsdpp = new(Vector{Float64}(), chunksize)
         lsdpp.weights = compute_weights(lsdpp, A; chunksize=chunksize,
