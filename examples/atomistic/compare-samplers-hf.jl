@@ -19,7 +19,7 @@ res_path  = "results-hf/"
 run(`mkdir -p $res_path`)
 
 # Load atomistic configurations (random subset of size N)
-N = 5000
+N = 28103
 file_paths = ["data/Hf/Hf2_gas_form_sorted.extxyz",
               "data/Hf/Hf2_mp103_EOS_1D_form_sorted.extxyz",
               "data/Hf/Hf2_mp103_EOS_3D_form_sorted.extxyz",
@@ -60,7 +60,7 @@ ds = DataSet(confs .+ e_descr .+ f_descr)
 # Sampling experiments #########################################################
 
 # Define number of experiments
-n_experiments = 100
+n_experiments = 40
 
 # Define samplers
 #samplers = [simple_random_sample, dbscan_sample, kmeans_sample, 

@@ -20,7 +20,7 @@ res_path  = "results-iso17/"
 run(`mkdir -p $res_path`)
 
 # Load training atomistic configurations (random subset of size N)
-N = 30_000
+N = 20_000
 file_paths = ["data/iso17/my_iso17_train.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=N)
 chunk, _ = take!(ch)
@@ -46,7 +46,7 @@ adjust_energies(confs,vref_dict)
 # Define basis
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 12,
+            polynomial_degree = 16,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
@@ -87,7 +87,7 @@ ds_test = DataSet(confs .+ e_descr .+ f_descr)
 # Sampling experiments #########################################################
 
 # Define number of experiments
-n_experiments = 100
+n_experiments = 40
 
 # Define samplers
 #samplers = [simple_random_sample, dbscan_sample, kmeans_sample, 
@@ -96,8 +96,8 @@ samplers = [simple_random_sample, kmeans_sample, cur_sample,
             dpp_sample, lrdpp_sample, lsdpp_sample]
 
 # Define batch sample sizes (proportions)
-batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]
-#batch_size_props = [0.08, 0.16, 0.32, 0.64]
+#batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]
+batch_size_props = [0.16, 0.32, 0.64, 0.99]
 
 # Create metric dataframe
 metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,

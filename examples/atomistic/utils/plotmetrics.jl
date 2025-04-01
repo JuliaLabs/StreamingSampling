@@ -56,7 +56,7 @@ function plotmetrics(res_path, metrics_filename)
                 markerstrokecolor = :black, 
                 markercolor = colors[j],
                 label="")
-            max = metric == :time ? 1 : maximum(metric_q2) # 0.8
+            max = metric == :time ? 1 : 1.0 # maximum(metric_q2)
             min = metric == :time ? -0.1 : minimum(metric_q2) * 0.50
             plot!(dpi = 300,
                 label = "",

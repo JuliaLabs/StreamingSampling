@@ -47,9 +47,9 @@ GC.gc()
 
 # Define basis
 basis = ACE(species           = [:Hf],
-            body_order        = 2,#5,
-            polynomial_degree = 3,#10,
-            rcutoff           = 4,#6.0,
+            body_order        = 5,
+            polynomial_degree = 10,
+            rcutoff           = 6.0,
             wL                = 1.0,
             csp               = 1.0,
             r0                = 1.0);
