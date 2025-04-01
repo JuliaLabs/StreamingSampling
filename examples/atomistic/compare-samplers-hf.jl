@@ -15,20 +15,22 @@ include("utils/atom-conf-features-extxyz.jl")
 # Data #########################################################################
 
 # Define paths and create experiment folder
-res_path  = "results-hf/"
+res_path  = "results-hf-50/"
 run(`mkdir -p $res_path`)
 
 # Load atomistic configurations (random subset of size N)
-N = 5000
-file_paths = ["data/Hf/Hf2_gas_form_sorted.extxyz",
-              "data/Hf/Hf2_mp103_EOS_1D_form_sorted.extxyz",
-              "data/Hf/Hf2_mp103_EOS_3D_form_sorted.extxyz",
-              "data/Hf/Hf2_mp103_EOS_6D_form_sorted.extxyz",
-              "data/Hf/Hf128_MC_rattled_mp100_form_sorted.extxyz",
-              "data/Hf/Hf128_MC_rattled_mp103_form_sorted.extxyz",
-              "data/Hf/Hf128_MC_rattled_random_form_sorted.extxyz",
-              "data/Hf/Hf_mp100_EOS_1D_form_sorted.extxyz",
-              "data/Hf/Hf_mp100_primitive_EOS_1D_form_sorted.extxyz"]
+N = 28103
+# Load atomistic configurations (random subset of size N)
+file_paths = ["/ibex/ai/home/omairyrm/DPP/Hf/config_data/Hf2_gas_form_sorted.extxyz",
+              "/ibex/ai/home/omairyrm/DPP/Hf/config_data/Hf2_mp103_EOS_1D_form_sorted.extxyz",
+              "/ibex/ai/home/omairyrm/DPP/Hf/config_data/Hf2_mp103_EOS_3D_form_sorted.extxyz",
+              "/ibex/ai/home/omairyrm/DPP/Hf/config_data/Hf2_mp103_EOS_6D_form_sorted.extxyz",
+              "/ibex/ai/home/omairyrm/DPP/Hf/config_data/Hf128_MC_rattled_mp100_form_sorted.extxyz",
+              "/ibex/ai/home/omairyrm/DPP/Hf/config_data/Hf128_MC_rattled_mp103_form_sorted.extxyz",
+              "/ibex/ai/home/omairyrm/DPP/Hf/config_data/Hf128_MC_rattled_random_form_sorted.extxyz",
+              "/ibex/ai/home/omairyrm/DPP/Hf/config_data/Hf_mp100_EOS_1D_form_sorted.extxyz",
+              "/ibex/ai/home/omairyrm/DPP/Hf/config_data/Hf_mp100_primitive_EOS_1D_form_sorted.extxyz"]
+
 ch = chunk_iterator(file_paths; chunksize=N)
 chunk, _ = take!(ch)
 confs = []
@@ -60,13 +62,13 @@ ds = DataSet(confs .+ e_descr .+ f_descr)
 # Sampling experiments #########################################################
 
 # Define number of experiments
-n_experiments = 100
+n_experiments = 50
 
 # Define samplers
 #samplers = [simple_random_sample, dbscan_sample, kmeans_sample, 
 #            cur_sample, dpp_sample, lrdpp_sample]
 samplers = [simple_random_sample, kmeans_sample, cur_sample,
-            dpp_sample, lrdpp_sample, lsdpp_sample]
+            dpp_sample, lsdpp_sample]
 
 # Define batch sample sizes (proportions)
 #batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]

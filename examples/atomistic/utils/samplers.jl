@@ -63,7 +63,7 @@ end
 function create_features(chunk::Matrix)
     return chunk
 end
-function lsdpp_sample(A, n; chunksize=2000, buffersize=32,
+function lsdpp_sample(A, n; chunksize=5000, buffersize=32,
                       max=Inf, randomized=false)
     N = size(A, 1)
     N′ = ceil(Int, N/2)

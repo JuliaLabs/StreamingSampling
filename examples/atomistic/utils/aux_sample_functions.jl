@@ -9,8 +9,8 @@ function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
     lb = PotentialLearning.LBasisPotential(basis)
     ws, int = [30.0, 1.0], true
     learn!(lb, ds_train, ws, int)
-    @save_var path lb.β
-    @save_var path lb.β0
+    #@save_var path lb.β
+    #@save_var path lb.β0
 
     # Post-process output: calculate metrics, create plots, and save results #######
 
@@ -28,10 +28,10 @@ function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
     end
     f_train, f_train_pred = get_all_forces(ds_train),
                             get_all_forces(ds_train, lb)
-    @save_var path e_train
-    @save_var path e_train_pred
-    @save_var path f_train
-    @save_var path f_train_pred
+    #@save_var path e_train
+    #@save_var path e_train_pred
+    #@save_var path f_train
+    #@save_var path f_train_pred
 
     # test energies were *not* permanently modified, so only need special function update predicted energies 
     if !isnothing(vref_dict)
@@ -44,10 +44,10 @@ function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
 
     f_test, f_test_pred = get_all_forces(ds_test),
                           get_all_forces(ds_test, lb)
-    @save_var path e_test
-    @save_var path e_test_pred
-    @save_var path f_test
-    @save_var path f_test_pred
+    #@save_var path e_test
+    #@save_var path e_test_pred
+    #@save_var path f_test
+    #@save_var path f_test_pred
 
     # Compute metrics
     e_train_metrics = get_metrics(e_train, e_train_pred,
@@ -66,7 +66,7 @@ function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
                                  metrics = [mae, rmse, rsq, mean_cos],
                                  label = "f_test")
     test_metrics = merge(e_test_metrics, f_test_metrics)
-    @save_dict path test_metrics
+   # @save_dict path test_metrics
 
     # Plot and save results
 

@@ -16,12 +16,12 @@ include("utils/subtract_peratom_e.jl")
 # Data #########################################################################
 
 # Define paths and create experiment folder
-res_path  = "results-iso17/"
+res_path  = "results-iso17-50/"
 run(`mkdir -p $res_path`)
 
 # Load training atomistic configurations (random subset of size N)
-N = 30_000
-file_paths = ["data/iso17/my_iso17_train.extxyz"]
+N = 10000
+file_paths = ["/ibex/ai/home/omairyrm/subsampling/iso17/my_iso17_train.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=N)
 chunk, _ = take!(ch)
 confs = []
@@ -46,7 +46,7 @@ adjust_energies(confs,vref_dict)
 # Define basis
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 12,
+            polynomial_degree = 16,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
@@ -61,8 +61,8 @@ GC.gc()
 ds_train = DataSet(confs .+ e_descr .+ f_descr)
 
 # Load test atomistic configurations (random subset of size N)
-M = 10_000
-file_paths = ["data/iso17/my_iso17_test.extxyz"]
+M = 10000
+file_paths = ["/ibex/ai/home/omairyrm/subsampling/iso17/my_iso17_test.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=M)
 chunk, _ = take!(ch)
 confs = []
@@ -87,13 +87,13 @@ ds_test = DataSet(confs .+ e_descr .+ f_descr)
 # Sampling experiments #########################################################
 
 # Define number of experiments
-n_experiments = 100
+n_experiments = 50
 
 # Define samplers
 #samplers = [simple_random_sample, dbscan_sample, kmeans_sample, 
 #            cur_sample, dpp_sample, lrdpp_sample]
 samplers = [simple_random_sample, kmeans_sample, cur_sample,
-            dpp_sample, lrdpp_sample, lsdpp_sample]
+            dpp_sample, lsdpp_sample]
 
 # Define batch sample sizes (proportions)
 batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]
