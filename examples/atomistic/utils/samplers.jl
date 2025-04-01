@@ -103,17 +103,33 @@ function lrdpp_sample(A, n)
     # Form an L-ensemble based on the L matrix
     dpp = EllEnsemble(L)
     
-    # Sample A (obtain indices)
+    # Sample A (obtain indices). Use resampling if needed.
     _, N = Base.size(A)
     n′ = n > N ? N : n
     curr_n = 0
     inds = []
-    while curr_n < n
+    it_max = 1000
+    i = 0
+    while curr_n < n && i < it_max
         curr_inds = Determinantal.sample(dpp, n′)
         inds = unique([inds; curr_inds])
         curr_n = Base.size(inds, 1)
+        i += 1
     end
-    inds = inds[1:n]
+
+    # If the curr. no. of elements is lower than the desired sample size:
+    # allow repeated elements
+    while curr_n < n
+        new_ind = rand(1:curr_n, 1)[1]
+        push!(inds, new_ind)
+        curr_n += 1
+    end
+
+    # If the curr. no. of elements is larger than the desired sample size (n):
+    # use the first n elements
+    if curr_n > n
+        inds = inds[1:n]
+    end
 
     return inds
 end
