@@ -160,7 +160,7 @@ end
 # Sampling experiments #########################################################
 
 # Define number of experiments
-n_experiments = 50
+n_experiments = 40
 
 # Define samplers
 samplers = [lrdpp_sample, lsdpp_sample, dpp_sample]

@@ -41,9 +41,9 @@ confs = DataSet(confs)
 
 # Define basis
 basis = ACE(species           = [:Hf],
-            body_order        = 5,
+            body_order        = 6,
             polynomial_degree = 10,
-            rcutoff           = 6.0,
+            rcutoff           = 5.5,
             wL                = 1.0,
             csp               = 1.0,
             r0                = 1.0)
