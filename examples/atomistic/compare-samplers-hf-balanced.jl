@@ -47,9 +47,9 @@ GC.gc()
 
 # Define basis
 basis = ACE(species           = [:Hf],
-            body_order        = 5,
+            body_order        = 6,
             polynomial_degree = 10,
-            rcutoff           = 6.0,
+            rcutoff           = 5.5,
             wL                = 1.0,
             csp               = 1.0,
             r0                = 1.0);
@@ -70,9 +70,8 @@ n_experiments = 40
 
 # Define samplers
 #samplers = [simple_random_sample, dbscan_sample, kmeans_sample, 
-#            cur_sample, dpp_sample, lrdpp_sample, lsdpp_sample]
-samplers = [simple_random_sample, kmeans_sample, cur_sample,
-            dpp_sample, lrdpp_sample, lsdpp_sample]
+#            cur_sample, dpp_sample, lrdpp_sample, lsdpp_sample] # all
+samplers = [simple_random_sample, kmeans_sample, cur_sample, lrdpp_sample] # efficient
 
 # Define batch sample sizes (proportions)
 #batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]
