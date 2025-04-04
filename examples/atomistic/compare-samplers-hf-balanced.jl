@@ -20,15 +20,72 @@ res_path  = "results-hf-balanced/"
 run(`mkdir -p $res_path`)
 
 # Load atomistic configurations (random subset of size N)
-file_paths = ["data/Hf/Hf2_gas_form_sorted.extxyz",
-              "data/Hf/Hf2_mp103_EOS_1D_form_sorted.extxyz",
-              "data/Hf/Hf2_mp103_EOS_3D_form_sorted.extxyz",
-              "data/Hf/Hf2_mp103_EOS_6D_form_sorted.extxyz",
-              "data/Hf/Hf128_MC_rattled_mp100_form_sorted.extxyz",
-              "data/Hf/Hf128_MC_rattled_mp103_form_sorted.extxyz",
-              "data/Hf/Hf128_MC_rattled_random_form_sorted.extxyz",
-              "data/Hf/Hf_mp100_EOS_1D_form_sorted.extxyz",
-              "data/Hf/Hf_mp100_primitive_EOS_1D_form_sorted.extxyz"]
+ds_path = "data/"
+file_paths  = [ "$ds_path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
+                "$ds_path/Hf128_MC_rattled_mp103_form_sorted.extxyz",
+                "$ds_path/Hf128_MC_rattled_random_form_sorted.extxyz",
+                "$ds_path/Hf2_gas_form_extrapolated.extxyz",
+                #"$ds_path/HfB2_MC_rattled2_mp1994_form_sorted.extxyz",
+                #"$ds_path/HfB2_MC_rattled_amorphous_form_sorted.extxyz",
+                #"$ds_path/HfB2_MC_rattled_mp1994_form_sorted.extxyz",
+                #"$ds_path/HfB2_mp1994_EOS_form_sorted.extxyz",
+                "$ds_path/Hf_bcc_vacancy_MC_rattled_form_sorted.extxyz",
+                "$ds_path/Hf_hcp_vacancy_MC_rattled_form_sorted.extxyz",
+                "$ds_path/Hf_MC_rattled_mp1009460_form_sorted.extxyz",
+                "$ds_path/Hf_MC_rattled_mp100_form_sorted.extxyz",
+                "$ds_path/Hf_MC_rattled_mp103_form_sorted.extxyz",
+                "$ds_path/Hf_mp1009460_EOS_convex_hull_form_sorted.extxyz",
+                "$ds_path/Hf_mp1009460_EOS_form_sorted.extxyz",
+                "$ds_path/Hf_mp100_EOS_form_sorted.extxyz",
+                "$ds_path/Hf_mp103_ads_form_sorted.extxyz",
+                "$ds_path/Hf_mp103_EOS_convex_hull_form_sorted.extxyz",
+                "$ds_path/Hf_mp103_EOS_form_sorted.extxyz",
+                "$ds_path/HfO2_bulk_diffusion_barriers_MC_rattled_form_sorted.extxyz",
+                #"$ds_path/HfO2_figshare_form_sorted.extxyz",
+                "$ds_path/HfO2_MC_rattled2_amorphous_form_sorted.extxyz",
+                "$ds_path/HfO2_MC_rattled2_mp1018721_form_sorted.extxyz",
+                "$ds_path/HfO2_MC_rattled2_mp352_form_sorted.extxyz",
+                "$ds_path/HfO2_MC_rattled2_mp550893_form_sorted.extxyz",
+                "$ds_path/HfO2_MC_rattled_mp1018721_form_sorted.extxyz",
+                "$ds_path/HfO2_MC_rattled_mp352_form_sorted.extxyz",
+                "$ds_path/HfO2_MC_rattled_mp550893_form_sorted.extxyz",
+                "$ds_path/HfO2_MC_rattled_random_form_sorted_selected.extxyz",
+                "$ds_path/HfO2_mp1018721_EOS_form_sorted.extxyz",
+                "$ds_path/HfO2_mp1018721_EOS_xyz_convex_hull_form_sorted.extxyz",
+                "$ds_path/HfO2_mp1858_EOS_xyz_convex_hull_form_sorted.extxyz",
+                "$ds_path/HfO2_mp352_EOS_convex_hull_form_sorted.extxyz",
+                "$ds_path/HfO2_mp352_EOS_form_sorted.extxyz",
+                "$ds_path/HfO2_mp352_EOS_press_form_sorted.extxyz",
+                "$ds_path/HfO2_mp352_vacancy_MC_rattled_form_sorted.extxyz",
+                "$ds_path/HfO2_mp550893_EOS_form_sorted.extxyz",
+                "$ds_path/HfO2_mp741_EOS_xyz_convex_hull_form_sorted.extxyz",
+                "$ds_path/HfO2_slabs_selected_form_sorted.extxyz",
+                "$ds_path/HfO2_stress_mp352_form_sorted.extxyz",
+                "$ds_path/HfO_gas_form_extrapolated.extxyz",
+                "$ds_path/HfOx_amorphous_MC_rattled_form_sorted.extxyz",
+                "$ds_path/Hf_Ox_hcp_octahedral_MC_rattled_form_sorted.extxyz",
+                "$ds_path/Hf_Ox_hcp_octa_tetra_MC_rattled_form_sorted.extxyz",
+                "$ds_path/Hf_Ox_hcp_tetrahedral_MC_rattled_form_sorted.extxyz",
+                "$ds_path/O2_AL_sel_gen10_form.extxyz",
+                "$ds_path/O2_AL_sel_gen11_form.extxyz",
+                "$ds_path/O2_AL_sel_gen12_form.extxyz",
+                "$ds_path/O2_AL_sel_gen13_form.extxyz",
+                "$ds_path/O2_AL_sel_gen14_form.extxyz",
+                "$ds_path/O2_AL_sel_gen15_form.extxyz",
+                "$ds_path/O2_AL_sel_gen16_form.extxyz",
+                "$ds_path/O2_AL_sel_gen17_form.extxyz",
+                "$ds_path/O2_AL_sel_gen18_form.extxyz",
+                "$ds_path/O2_AL_sel_gen19_form.extxyz",
+                "$ds_path/O2_AL_sel_gen1_form.extxyz",
+                "$ds_path/O2_AL_sel_gen2_form.extxyz",
+                "$ds_path/O2_AL_sel_gen3_form.extxyz",
+                "$ds_path/O2_AL_sel_gen4_form.extxyz",
+                "$ds_path/O2_AL_sel_gen5_form.extxyz",
+                "$ds_path/O2_AL_sel_gen6_form.extxyz",
+                "$ds_path/O2_AL_sel_gen7_form.extxyz",
+                "$ds_path/O2_AL_sel_gen8_form.extxyz",
+                "$ds_path/O2_AL_sel_gen9_form.extxyz",
+                "$ds_path/O2_gas_form_extrapolated.extxyz"]
 
 confs = []
 confsizes = zeros(Int, length(file_paths))
@@ -46,10 +103,10 @@ N = length(confs)
 GC.gc()
 
 # Define basis
-basis = ACE(species           = [:Hf],
+basis = ACE(species           = [:Hf, :O],
             body_order        = 6,
             polynomial_degree = 10,
-            rcutoff           = 5.5,
+            rcutoff           = 6,
             wL                = 1.0,
             csp               = 1.0,
             r0                = 1.0);
@@ -71,7 +128,7 @@ n_experiments = 40
 # Define samplers
 #samplers = [simple_random_sample, dbscan_sample, kmeans_sample, 
 #            cur_sample, dpp_sample, lrdpp_sample, lsdpp_sample] # all
-samplers = [simple_random_sample, kmeans_sample, cur_sample, lrdpp_sample] # efficient
+samplers = [simple_random_sample, kmeans_sample, cur_sample, lrdpp_sample]
 
 # Define batch sample sizes (proportions)
 #batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]

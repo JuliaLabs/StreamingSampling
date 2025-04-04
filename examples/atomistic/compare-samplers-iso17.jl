@@ -20,7 +20,7 @@ res_path  = "results-iso17/"
 run(`mkdir -p $res_path`)
 
 # Load training atomistic configurations (random subset of size N)
-N = 20_000
+N = 27_000
 file_paths = ["data/iso17/my_iso17_train.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=N)
 chunk, _ = take!(ch)
@@ -92,8 +92,7 @@ n_experiments = 40
 # Define samplers
 #samplers = [simple_random_sample, dbscan_sample, kmeans_sample, 
 #            cur_sample, dpp_sample, lrdpp_sample]
-samplers = [simple_random_sample, kmeans_sample, cur_sample,
-            dpp_sample, lrdpp_sample, lsdpp_sample]
+samplers = [simple_random_sample, kmeans_sample, cur_sample, lrdpp_sample]
 
 # Define batch sample sizes (proportions)
 #batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]
