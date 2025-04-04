@@ -16,7 +16,7 @@ include("utils/xyz.jl")
 # Data #########################################################################
 
 # Define paths and create experiment folder
-res_path  = "results-dpps-hf-balanced-partial-stats/"
+res_path  = "results-hf-balanced-partial-stats/"
 run(`mkdir -p $res_path`)
 
 # Load atomistic configurations (random subset of size N)

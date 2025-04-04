@@ -16,11 +16,11 @@ include("utils/subtract_peratom_e.jl")
 # Data #########################################################################
 
 # Define paths and create experiment folder
-res_path  = "results-dpps-iso17-partial-stats/"
+res_path  = "results-iso17-partial-stats/"
 run(`mkdir -p $res_path`)
 
 # Load training atomistic configurations (random subset of size N)
-N = 20_000
+N = 27_000
 file_paths = ["data/iso17/my_iso17_train.extxyz"]
 ch = chunk_iterator(file_paths; chunksize=N)
 chunk, _ = take!(ch)
