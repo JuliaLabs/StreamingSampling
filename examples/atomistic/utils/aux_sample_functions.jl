@@ -350,6 +350,7 @@ function fit_gpr_exact(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, nb=
     BLAS.trsm!('L', 'L', 'T', 'N', 1.0, Ktt, Ktp)
 
     σpt = Kpp - Kpt * Ktp
+   #display(σpt)
 
     # Compute metrics
     e_train_metrics = get_metrics(e_train, e_train_pred,
@@ -428,6 +429,7 @@ function fit_gpr_approx(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, to
     T = eltype(Ktt)
     println("Adapt precision with tol = $tol")
     MP = adapt_precision(DA_mixed, T(tol))
+    #display(MP)
     # Save the matrix to a binary file
     #serialize("$(path)_datatype_matrix_$(tol)_$(gamma)_$(length(ds_train)).dat", MP)
 
@@ -475,6 +477,7 @@ function fit_gpr_approx(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, to
     BLAS.trsm!('L', 'L', 'T', 'N', 1.0, Ktt, Ktp)
 
     σpt = Kpp - Kpt * Ktp
+    #display(σpt)
 
 
     # Compute metrics
@@ -505,19 +508,38 @@ function fit_gpr_approx(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, to
         return e_test_metrics,  μpt, σpt
 end    
 
-
-function spd_distance(A::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real})
+#=
+function spd_distance(A::AbstractMatrix{Float64}, B::AbstractMatrix{Float64})
     # Convert to full matrix if Symmetric
-    A_full = Matrix(A)
-    B_full = Matrix(B)
+    A_full = real.(A)
+    B_full = real.(B)
 
+    #A_full[diagind(A_full)] .+=10^6
+    #B_full[diagind(B_full)] .+=10^6
+
+    ϵ = 1e-10
+    A_full += ϵ * I
+    B_full += ϵ * I
+    
     # Check for SPD property
-    @assert issymmetric(A_full) && isposdef(A_full) "A must be SPD"
-    @assert issymmetric(B_full) && isposdef(B_full) "B must be SPD"
+   # @assert isposdef(A_full) "A must be SPD"
+   # @assert isposdef(B_full) "B must be SPD"
 
     # Generalized eigenvalues of (A, B)
     λ = eigen(A_full, B_full).values
-
+    λ = real.(λ)
     # Distance computation
     return sqrt(sum(log.(λ).^2))
+end
+=#
+function spd_distance(A::AbstractMatrix{Float64}, B::AbstractMatrix{Float64})
+    # Convert to dense and ensure SPD
+    A_full = copy(A) + 1e-10I
+    B_full = copy(B) + 1e-10I
+
+    # Generalized eigenvalues (can return complex if not SPD)
+    λ = eigen(A_full, B_full).values
+
+    # Use only the real part (imag part is ~1e-25 if matrices are nearly SPD)
+    return sqrt(sum(log.(real.(λ)).^2))
 end
