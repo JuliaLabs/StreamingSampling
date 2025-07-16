@@ -39,7 +39,7 @@ GC.gc()
 # Sampling by LSDPP
 Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
 @time begin
-    lsdpp = LSDPP(file_paths; chunksize=2000, max=N)
+    lsdpp = LSDPP(file_paths; chunksize=1500, max=N)
     lsdpp_probs = inclusion_prob(lsdpp, n)
     lsdpp_indexes = sample(lsdpp, n)
 end
@@ -57,7 +57,7 @@ savefig("dpp-probs-vs-lsdpp-probs-aspirin.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
 # sampling n points from a set of size N, with each point of size M
-iterations = 20_000 # Use 20_000_000
+iterations = 20_000_000 # Use 20_000_000
 lsdpp_freqs = relative_frequencies(lsdpp, n, iterations)
 scatter(dpp_probs, lsdpp_freqs, color="red", alpha=0.5)
 plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
@@ -69,7 +69,7 @@ savefig("dpp-probs-vs-lsdpp-freqs-aspirin.png")
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 
 # random points, when sampling n points from a set of size N, with each point of size M
 set = rand(1:N, 2)
-iterations = 10_000 # Use 10_000_000
+iterations = 10 # Use 10_000_000
 lsdpp_set_freqs = relative_frequencies(lsdpp, set, n, iterations)
 dpp_set_freqs = det(marginal_kernel(dpp)[set, set])
 @printf("DPP inclusion probability for dataset %s is %f \n", 

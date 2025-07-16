@@ -16,11 +16,15 @@ include("utils/xyz.jl")
 # Data #########################################################################
 
 # Define paths and create experiment folder
-res_path  = "results-hf-balanced-partial-stats/"
+main_path = "/home/gridsan/elujan/LargeScaleSampling/examples/atomistic/"
+res_path  = "$main_path/results-hfo2-balanced-partial-stats/"
 run(`mkdir -p $res_path`)
 
 # Load atomistic configurations (random subset of size N)
-ds_path = "data/"
+run(`mkdir -p $res_path`)
+
+ds_path = "$main_path/data/hfox_data_dionysios/"
+
 file_paths  = [ "$ds_path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
                 "$ds_path/Hf128_MC_rattled_mp103_form_sorted.extxyz",
                 "$ds_path/Hf128_MC_rattled_random_form_sorted.extxyz",
@@ -62,31 +66,30 @@ file_paths  = [ "$ds_path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
                 "$ds_path/HfO2_slabs_selected_form_sorted.extxyz",
                 "$ds_path/HfO2_stress_mp352_form_sorted.extxyz",
                 "$ds_path/HfO_gas_form_extrapolated.extxyz",
-                "$ds_path/HfOx_amorphous_MC_rattled_form_sorted.extxyz",
-                "$ds_path/Hf_Ox_hcp_octahedral_MC_rattled_form_sorted.extxyz",
-                "$ds_path/Hf_Ox_hcp_octa_tetra_MC_rattled_form_sorted.extxyz",
-                "$ds_path/Hf_Ox_hcp_tetrahedral_MC_rattled_form_sorted.extxyz",
-                "$ds_path/O2_AL_sel_gen10_form.extxyz",
-                "$ds_path/O2_AL_sel_gen11_form.extxyz",
-                "$ds_path/O2_AL_sel_gen12_form.extxyz",
-                "$ds_path/O2_AL_sel_gen13_form.extxyz",
-                "$ds_path/O2_AL_sel_gen14_form.extxyz",
-                "$ds_path/O2_AL_sel_gen15_form.extxyz",
-                "$ds_path/O2_AL_sel_gen16_form.extxyz",
-                "$ds_path/O2_AL_sel_gen17_form.extxyz",
-                "$ds_path/O2_AL_sel_gen18_form.extxyz",
-                "$ds_path/O2_AL_sel_gen19_form.extxyz",
-                "$ds_path/O2_AL_sel_gen1_form.extxyz",
-                "$ds_path/O2_AL_sel_gen2_form.extxyz",
-                "$ds_path/O2_AL_sel_gen3_form.extxyz",
-                "$ds_path/O2_AL_sel_gen4_form.extxyz",
-                "$ds_path/O2_AL_sel_gen5_form.extxyz",
-                "$ds_path/O2_AL_sel_gen6_form.extxyz",
-                "$ds_path/O2_AL_sel_gen7_form.extxyz",
-                "$ds_path/O2_AL_sel_gen8_form.extxyz",
-                "$ds_path/O2_AL_sel_gen9_form.extxyz",
-                "$ds_path/O2_gas_form_extrapolated.extxyz"]
-
+                "$ds_path/HfOx_amorphous_MC_rattled_form_sorted.extxyz"] # ds4
+                # "$ds_path/Hf_Ox_hcp_octahedral_MC_rattled_form_sorted.extxyz",
+                # "$ds_path/Hf_Ox_hcp_octa_tetra_MC_rattled_form_sorted.extxyz",
+                # "$ds_path/Hf_Ox_hcp_tetrahedral_MC_rattled_form_sorted.extxyz",
+                # "$ds_path/O2_AL_sel_gen10_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen11_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen12_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen13_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen14_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen15_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen16_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen17_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen18_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen19_form.extxyz",#
+                # "$ds_path/O2_AL_sel_gen1_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen2_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen3_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen4_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen5_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen6_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen7_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen8_form.extxyz",
+                # "$ds_path/O2_AL_sel_gen9_form.extxyz",
+                # "$ds_path/O2_gas_form_extrapolated.extxyz"]
 confs = []
 confsizes = zeros(Int, length(file_paths))
 for (i, ds_path) in enumerate(file_paths)
@@ -98,20 +101,24 @@ offsets = zeros(Int, length(file_paths))
 for i in 2:length(file_paths)
     offsets[i] = confsizes[i-1] + offsets[i-1]
 end
+
 confs = DataSet(confs)
 N = length(confs)
+
 GC.gc()
 
-# Define basis
-basis = ACE(species           = [:Hf, :O],
-            body_order        = 6,
-            polynomial_degree = 10,
-            rcutoff           = 6,
-            wL                = 1.0,
+basis = ACE(species           = [:Hf,:O],
+            body_order        = 4,
+            polynomial_degree = 12,
+            wL                = 2.0,
             csp               = 1.0,
-            r0                = 1.0);
+            r0                = 1.43,
+            rcutoff           = 4.4 );
+# (e_test_mae, e_test_rmse) = (0.13539587460097754, 0.17079928833214678)
+# (f_test_mae, f_test_rmse) = (0.16782190053814108, 0.285166842618458)
 
 # Update dataset by adding energy and force descriptors
+
 println("Computing energy descriptors of dataset...")
 B_time = @elapsed e_descr = compute_local_descriptors(confs, basis)
 println("Computing force descriptors of dataset...")
@@ -119,6 +126,9 @@ dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
 GC.gc()
 ds = DataSet(confs .+ e_descr .+ f_descr)
 
+using Serialization
+serialize("ds4.jls", ds)
+#ds = deserialize("ds3.jls")
 
 # Define randomized training and test dataset.
 # Here, both datasets have elements of each file.
@@ -135,55 +145,54 @@ ds_train_rnd = @views ds[rnd_inds_train]
 ds_test_rnd  = @views ds[rnd_inds_test]
 n_train = length(ds_train_rnd)
 n_test = length(ds_test_rnd)
-ged = sum.(get_values.(get_local_descriptors.(ds_train_rnd)))
-A = stack(ged)'
+A = stack(sum.(get_values.(get_local_descriptors.(ds_train_rnd))))'
 
 # Samplers #####################################################################
 
 # LRDPP
- # Compute a kernel matrix for the points in x
-L = LowRank(Matrix(A))
-# Form an L-ensemble based on the L matrix
-dpp = EllEnsemble(L)
-function lrdpp_sample(A, n)
-    global dpp
-    # Sample A (obtain indices). Use resampling if needed.
-    _, N = Base.size(A)
-    n′ = n > N ? N : n
-    curr_n = 0
-    inds = []
-    it_max = 1000
-    i = 0
-    while curr_n < n && i < it_max
-        curr_inds = Determinantal.sample(dpp, n′)
-        inds = unique([inds; curr_inds])
-        curr_n = Base.size(inds, 1)
-        i += 1
-    end
-    # If the curr. no. of elements is lower than the desired sample size:
-    # allow repeated elements
-    while curr_n < n
-        new_ind = rand(1:curr_n, 1)[1]
-        push!(inds, new_ind)
-        curr_n += 1
-    end
-    # If the curr. no. of elements is larger than the desired sample size (n):
-    # use the first n elements
-    if curr_n > n
-        inds = inds[1:n]
-    end
-    return inds
-end
+#  # Compute a kernel matrix for the points in x
+# L = LowRank(Matrix(A))
+# # Form an L-ensemble based on the L matrix
+# dpp = EllEnsemble(L)
+# function lrdpp_sample(A, n)
+#     global dpp
+#     # Sample A (obtain indices). Use resampling if needed.
+#     _, N = Base.size(A)
+#     n2 = n > N ? N : n
+#     curr_n = 0
+#     inds = []
+#     it_max = 1000
+#     i = 0
+#     while curr_n < n && i < it_max
+#         curr_inds = Determinantal.sample(dpp,n2)
+#         inds = unique([inds; curr_inds])
+#         curr_n = Base.size(inds, 1)
+#         i += 1
+#     end
+#     # If the curr. no. of elements is lower than the desired sample size:
+#     # allow repeated elements
+#     while curr_n < n
+#         new_ind = rand(1:curr_n, 1)[1]
+#         push!(inds, new_ind)
+#         curr_n += 1
+#     end
+#     # If the curr. no. of elements is larger than the desired sample size (n):
+#     # use the first n elements
+#     if curr_n > n
+#         inds = inds[1:n]
+#     end
+#     return inds
+# end
 
 # LSDPP
 function create_features(chunk::Matrix)
     return chunk
 end
 N = size(A, 1)
-N′ = ceil(Int, N/2)
-lsdpp = LSDPP(Matrix(A); chunksize=min(N′, 4000),
+N2 = ceil(Int, N/2)
+lsdpp = LSDPP(Matrix(A); chunksize=min(N2, 2000),
               max=Inf, randomized=false)
-function lsdpp_sample(A, n; chunksize=4000, buffersize=1,
+function lsdpp_sample(A, n; chunksize=2000, buffersize=1,
                       max=Inf, randomized=false)
     global lsdpp
     inds = sample(lsdpp, n)
@@ -193,9 +202,9 @@ end
 # DPP
 # Compute a kernel matrix for the points in x
 L = pairwise(Distances.Euclidean(), A')
-GC.gc()
 # Form an L-ensemble based on the L matrix
 dpp = EllEnsemble(L)
+L = nothing; GC.gc()
 function dpp_sample(A, n; distance = Distances.Euclidean())
     global dpp
     # Scale so that the expected size is n
@@ -211,10 +220,10 @@ end
 n_experiments = 40
 
 # Define samplers
-samplers = [lrdpp_sample, lsdpp_sample, dpp_sample]
+samplers = [dpp_sample, lsdpp_sample] #, lrdpp_sample]
 
 # Define batch sample sizes (proportions)
-batch_size_props = [0.08, 0.16, 0.32, 0.64]
+batch_size_props = [0.08, 0.16, 0.32, 0.64] #[0.08, 0.16, 0.32, 0.64]
 
 # Create metric dataframe
 metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
@@ -240,4 +249,3 @@ end
 
 # Postprocess ##################################################################
 plotmetrics(res_path, "metrics.csv")
-

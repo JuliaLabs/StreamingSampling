@@ -8,7 +8,18 @@ function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
     # Learn
     lb = PotentialLearning.LBasisPotential(basis)
     ws, int = [30.0, 1.0], true
-    learn!(lb, ds_train, ws, int)
+    #learn!(lb, ds_train, ws, int)
+
+    lp = PotentialLearning.LinearProblem(ds)
+    learn!(lp, ws, int; λ=0.8)
+    GC.gc()
+    resize!(lb.β, length(lp.β))
+    lb.β .= lp.β
+    lb.β0 .= lp.β0
+
+    lp = nothing
+    GC.gc()
+
     @save_var path lb.β
     @save_var path lb.β0
 
@@ -78,12 +89,16 @@ function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
                          f_test, f_test_pred)
     @save_fig path f_plot
 
+    GC.gc()
+
     e_train_plot = plot_energy(e_train, e_train_pred)
     f_train_plot = plot_forces(f_train, f_train_pred)
     f_train_cos  = plot_cos(f_train, f_train_pred)
     @save_fig path e_train_plot
     @save_fig path f_train_plot
     @save_fig path f_train_cos
+
+    GC.gc()
 
     e_test_plot = plot_energy(e_test, e_test_pred)
     f_test_plot = plot_forces(f_test, f_test_pred)

@@ -6,6 +6,8 @@ function plotmetrics(res_path, metrics_filename)
     metrics = CSV.read("$res_path/$metrics_filename", DataFrame)
 
     methods = reverse(unique(metrics.method))
+    #methods = ["cur_sample", "kmeans_sample", "simple_random_sample"]
+
     batch_sizes = unique(metrics.batch_size)
     batch_size_prop = unique(metrics.batch_size_prop)
     xticks_label = ("$b\n$(p*100)%" for (b, p) in zip(batch_sizes, batch_size_prop))
