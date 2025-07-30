@@ -16,7 +16,7 @@ include("utils/xyz.jl")
 # Data #########################################################################
 
 # Define paths and create experiment folder
-main_path = "/home/gridsan/elujan/LargeScaleSampling/examples/atomistic/"
+main_path = "/home/eljn/LargeScaleSampling/examples/atomistic/"
 res_path  = "$main_path/results-hfo2-balanced-partial-stats/"
 run(`mkdir -p $res_path`)
 
@@ -66,30 +66,30 @@ file_paths  = [ "$ds_path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
                 "$ds_path/HfO2_slabs_selected_form_sorted.extxyz",
                 "$ds_path/HfO2_stress_mp352_form_sorted.extxyz",
                 "$ds_path/HfO_gas_form_extrapolated.extxyz",
-                "$ds_path/HfOx_amorphous_MC_rattled_form_sorted.extxyz"] # ds4
-                # "$ds_path/Hf_Ox_hcp_octahedral_MC_rattled_form_sorted.extxyz",
-                # "$ds_path/Hf_Ox_hcp_octa_tetra_MC_rattled_form_sorted.extxyz",
-                # "$ds_path/Hf_Ox_hcp_tetrahedral_MC_rattled_form_sorted.extxyz",
-                # "$ds_path/O2_AL_sel_gen10_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen11_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen12_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen13_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen14_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen15_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen16_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen17_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen18_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen19_form.extxyz",#
-                # "$ds_path/O2_AL_sel_gen1_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen2_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen3_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen4_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen5_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen6_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen7_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen8_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen9_form.extxyz",
-                # "$ds_path/O2_gas_form_extrapolated.extxyz"]
+                "$ds_path/HfOx_amorphous_MC_rattled_form_sorted.extxyz", # ds4
+                "$ds_path/Hf_Ox_hcp_octahedral_MC_rattled_form_sorted.extxyz",
+                "$ds_path/Hf_Ox_hcp_octa_tetra_MC_rattled_form_sorted.extxyz",
+                "$ds_path/Hf_Ox_hcp_tetrahedral_MC_rattled_form_sorted.extxyz",
+                "$ds_path/O2_AL_sel_gen10_form.extxyz",
+                "$ds_path/O2_AL_sel_gen11_form.extxyz",
+                "$ds_path/O2_AL_sel_gen12_form.extxyz",
+                "$ds_path/O2_AL_sel_gen13_form.extxyz",
+                "$ds_path/O2_AL_sel_gen14_form.extxyz",
+                "$ds_path/O2_AL_sel_gen15_form.extxyz",
+                "$ds_path/O2_AL_sel_gen16_form.extxyz",
+                "$ds_path/O2_AL_sel_gen17_form.extxyz",
+                "$ds_path/O2_AL_sel_gen18_form.extxyz",
+                "$ds_path/O2_AL_sel_gen19_form.extxyz",#
+                "$ds_path/O2_AL_sel_gen1_form.extxyz",
+                "$ds_path/O2_AL_sel_gen2_form.extxyz",
+                "$ds_path/O2_AL_sel_gen3_form.extxyz",
+                "$ds_path/O2_AL_sel_gen4_form.extxyz",
+                "$ds_path/O2_AL_sel_gen5_form.extxyz",
+                "$ds_path/O2_AL_sel_gen6_form.extxyz",
+                "$ds_path/O2_AL_sel_gen7_form.extxyz",
+                "$ds_path/O2_AL_sel_gen8_form.extxyz",
+                "$ds_path/O2_AL_sel_gen9_form.extxyz",
+                "$ds_path/O2_gas_form_extrapolated.extxyz"]
 confs = []
 confsizes = zeros(Int, length(file_paths))
 for (i, ds_path) in enumerate(file_paths)
@@ -120,15 +120,15 @@ basis = ACE(species           = [:Hf,:O],
 # Update dataset by adding energy and force descriptors
 
 println("Computing energy descriptors of dataset...")
-B_time = @elapsed e_descr = compute_local_descriptors(confs, basis)
-println("Computing force descriptors of dataset...")
-dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
-GC.gc()
-ds = DataSet(confs .+ e_descr .+ f_descr)
+#B_time = @elapsed e_descr = compute_local_descriptors(confs, basis)
+#println("Computing force descriptors of dataset...")
+#dB_time = @elapsed f_descr = compute_force_descriptors(confs, basis)
+#GC.gc()
+#ds = DataSet(confs .+ e_descr .+ f_descr)
 
 using Serialization
-serialize("ds4.jls", ds)
-#ds = deserialize("ds3.jls")
+#serialize("hfox_data_dionysios.jls", ds)
+ds = deserialize("hfox_data_dionysios.jls")
 
 # Define randomized training and test dataset.
 # Here, both datasets have elements of each file.
@@ -141,48 +141,21 @@ for (i, ni) in enumerate(confsizes)
     push!(rnd_inds_train, rnd_inds[1:n_train_i]...)
     push!(rnd_inds_test, rnd_inds[n_train_i+1:n_train_i+n_test_i]...)
 end
+#serialize("rnd_inds_train.jls", rnd_inds_train)
+#serialize("rnd_inds_test.jls", rnd_inds_test)
+rnd_inds_train = deserialize("rnd_inds_train.jls")
+rnd_inds_test = deserialize("rnd_inds_test.jls")
+
 ds_train_rnd = @views ds[rnd_inds_train]
 ds_test_rnd  = @views ds[rnd_inds_test]
 n_train = length(ds_train_rnd)
 n_test = length(ds_test_rnd)
 A = stack(sum.(get_values.(get_local_descriptors.(ds_train_rnd))))'
 
+
+
 # Samplers #####################################################################
 
-# LRDPP
-#  # Compute a kernel matrix for the points in x
-# L = LowRank(Matrix(A))
-# # Form an L-ensemble based on the L matrix
-# dpp = EllEnsemble(L)
-# function lrdpp_sample(A, n)
-#     global dpp
-#     # Sample A (obtain indices). Use resampling if needed.
-#     _, N = Base.size(A)
-#     n2 = n > N ? N : n
-#     curr_n = 0
-#     inds = []
-#     it_max = 1000
-#     i = 0
-#     while curr_n < n && i < it_max
-#         curr_inds = Determinantal.sample(dpp,n2)
-#         inds = unique([inds; curr_inds])
-#         curr_n = Base.size(inds, 1)
-#         i += 1
-#     end
-#     # If the curr. no. of elements is lower than the desired sample size:
-#     # allow repeated elements
-#     while curr_n < n
-#         new_ind = rand(1:curr_n, 1)[1]
-#         push!(inds, new_ind)
-#         curr_n += 1
-#     end
-#     # If the curr. no. of elements is larger than the desired sample size (n):
-#     # use the first n elements
-#     if curr_n > n
-#         inds = inds[1:n]
-#     end
-#     return inds
-# end
 
 # LSDPP
 function create_features(chunk::Matrix)
@@ -201,9 +174,16 @@ end
 
 # DPP
 # Compute a kernel matrix for the points in x
-L = pairwise(Distances.Euclidean(), A')
+#L = pairwise(Distances.Euclidean(), A')
+
+#serialize("L.jls", L)
+L = deserialize("L.jls")
+
 # Form an L-ensemble based on the L matrix
 dpp = EllEnsemble(L)
+
+serialize("dpp.jls", dpp)
+
 L = nothing; GC.gc()
 function dpp_sample(A, n; distance = Distances.Euclidean())
     global dpp
@@ -214,38 +194,38 @@ function dpp_sample(A, n; distance = Distances.Euclidean())
     return inds
 end
 
-# Sampling experiments #########################################################
+# # Sampling experiments #########################################################
 
-# Define number of experiments
-n_experiments = 40
+# # Define number of experiments
+# n_experiments = 40
 
-# Define samplers
-samplers = [dpp_sample, lsdpp_sample] #, lrdpp_sample]
+# # Define samplers
+# samplers = [dpp_sample, lsdpp_sample] #, lrdpp_sample]
 
-# Define batch sample sizes (proportions)
-batch_size_props = [0.08, 0.16, 0.32, 0.64] #[0.08, 0.16, 0.32, 0.64]
+# # Define batch sample sizes (proportions)
+# batch_size_props = [0.08, 0.16, 0.32, 0.64] #[0.08, 0.16, 0.32, 0.64]
 
-# Create metric dataframe
-metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
-                :e_train_mae, :e_train_rmse, :e_train_rsq,
-                :f_train_mae, :f_train_rmse, :f_train_rsq, :f_train_mean_cos,
-                :e_test_mae,  :e_test_rmse,  :e_test_rsq, 
-                :f_test_mae,  :f_test_rmse,  :f_test_rsq,  :f_test_mean_cos]
-metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
+# # Create metric dataframe
+# metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
+#                 :e_train_mae, :e_train_rmse, :e_train_rsq,
+#                 :f_train_mae, :f_train_rmse, :f_train_rsq, :f_train_mean_cos,
+#                 :e_test_mae,  :e_test_rmse,  :e_test_rsq, 
+#                 :f_test_mae,  :f_test_rmse,  :f_test_rsq,  :f_test_mean_cos]
+# metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 
-# Run experiments
-for j in 1:n_experiments
-    global metrics
+# # Run experiments
+# for j in 1:n_experiments
+#     global metrics
     
-    # Sampling experiments
-    for batch_size_prop in batch_size_props
-        for curr_sampler in samplers
-            sample_experiment!(res_path, j, curr_sampler, batch_size_prop, n_train, 
-                               A, ds_train_rnd, ds_test_rnd, basis, metrics)
-            GC.gc()
-        end
-    end
-end
+#     # Sampling experiments
+#     for batch_size_prop in batch_size_props
+#         for curr_sampler in samplers
+#             sample_experiment!(res_path, j, curr_sampler, batch_size_prop, n_train, 
+#                               A, ds_train_rnd, ds_test_rnd, basis, metrics)
+#             GC.gc()
+#         end
+#     end
+# end
 
-# Postprocess ##################################################################
-plotmetrics(res_path, "metrics.csv")
+# # Postprocess ##################################################################
+# plotmetrics(res_path, "metrics.csv")

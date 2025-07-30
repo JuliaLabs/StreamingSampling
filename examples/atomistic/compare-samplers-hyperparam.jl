@@ -21,7 +21,7 @@ include("utils/xyz.jl")
 # Data #########################################################################
 
 # Define paths and create experiment folder
-main_path = "/home/gridsan/elujan/LargeScaleSampling/examples/atomistic/"
+main_path = "/home/eljn/LargeScaleSampling/examples/atomistic/"
 res_path  = "$main_path/results-hyperopt-hfo2-balanced-partial-stats/"
 run(`mkdir -p $res_path`)
 
@@ -29,6 +29,7 @@ run(`mkdir -p $res_path`)
 run(`mkdir -p $res_path`)
 
 ds_path = "$main_path/data/hfox_data_dionysios/"
+
 
 file_paths  = [ "$ds_path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
                 "$ds_path/Hf128_MC_rattled_mp103_form_sorted.extxyz",
@@ -71,7 +72,7 @@ file_paths  = [ "$ds_path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
                 "$ds_path/HfO2_slabs_selected_form_sorted.extxyz",
                 "$ds_path/HfO2_stress_mp352_form_sorted.extxyz",
                 "$ds_path/HfO_gas_form_extrapolated.extxyz",
-                "$ds_path/HfOx_amorphous_MC_rattled_form_sorted.extxyz",
+                "$ds_path/HfOx_amorphous_MC_rattled_form_sorted.extxyz", # ds4
                 "$ds_path/Hf_Ox_hcp_octahedral_MC_rattled_form_sorted.extxyz",
                 "$ds_path/Hf_Ox_hcp_octa_tetra_MC_rattled_form_sorted.extxyz",
                 "$ds_path/Hf_Ox_hcp_tetrahedral_MC_rattled_form_sorted.extxyz",
@@ -79,22 +80,22 @@ file_paths  = [ "$ds_path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
                 "$ds_path/O2_AL_sel_gen11_form.extxyz",
                 "$ds_path/O2_AL_sel_gen12_form.extxyz",
                 "$ds_path/O2_AL_sel_gen13_form.extxyz",
-                "$ds_path/O2_AL_sel_gen14_form.extxyz"] # ds3
-                # "$ds_path/O2_AL_sel_gen15_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen16_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen17_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen18_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen19_form.extxyz",#
-                # "$ds_path/O2_AL_sel_gen1_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen2_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen3_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen4_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen5_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen6_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen7_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen8_form.extxyz",
-                # "$ds_path/O2_AL_sel_gen9_form.extxyz",
-                # "$ds_path/O2_gas_form_extrapolated.extxyz"]
+                "$ds_path/O2_AL_sel_gen14_form.extxyz",
+                "$ds_path/O2_AL_sel_gen15_form.extxyz",
+                "$ds_path/O2_AL_sel_gen16_form.extxyz",
+                "$ds_path/O2_AL_sel_gen17_form.extxyz",
+                "$ds_path/O2_AL_sel_gen18_form.extxyz",
+                "$ds_path/O2_AL_sel_gen19_form.extxyz",#
+                "$ds_path/O2_AL_sel_gen1_form.extxyz",
+                "$ds_path/O2_AL_sel_gen2_form.extxyz",
+                "$ds_path/O2_AL_sel_gen3_form.extxyz",
+                "$ds_path/O2_AL_sel_gen4_form.extxyz",
+                "$ds_path/O2_AL_sel_gen5_form.extxyz",
+                "$ds_path/O2_AL_sel_gen6_form.extxyz",
+                "$ds_path/O2_AL_sel_gen7_form.extxyz",
+                "$ds_path/O2_AL_sel_gen8_form.extxyz",
+                "$ds_path/O2_AL_sel_gen9_form.extxyz",
+                "$ds_path/O2_gas_form_extrapolated.extxyz"]
 confs = []
 confsizes = zeros(Int, length(file_paths))
 for (i, ds_path) in enumerate(file_paths)
@@ -132,8 +133,8 @@ GC.gc()
 # ds = DataSet(confs .+ e_descr .+ f_descr)
 
 using Serialization
-#serialize("ds2.jls", ds)
-ds = deserialize("ds3.jls")
+#serialize("hfox_data_dionysios.jls", ds)
+ds = deserialize("hfox_data_dionysios.jls")
 
 # Define randomized training and test dataset.
 # Here, both datasets have elements of each file.
@@ -217,16 +218,16 @@ run(`mkdir -p $exp_path`)
 batch_size = floor(Int, n_train * batch_size_prop)
 inds = curr_sampler(A, batch_size)
 model = ACE
-pars = OrderedDict( :body_order        => [2, 4],
-                    :polynomial_degree => [7, 10],
-                    :rcutoff           => LinRange(4, 5, 5),
-                    :wL                => LinRange(0.5, 2.0, 5),
-                    :csp               => LinRange(0.5, 2.0, 5),
-                    :r0                => LinRange(0.5, 2.0, 5));
-sampler = CLHSampler(dims=[Categorical(2), Categorical(2), Continuous(),
+pars = OrderedDict( :body_order        => [2, 3, 4],
+                    :polynomial_degree => [7, 8, 9, 10],
+                    :rcutoff           => LinRange(4, 5, 20),
+                    :wL                => LinRange(0.5, 2.0, 20),
+                    :csp               => LinRange(0.5, 2.0, 20),
+                    :r0                => LinRange(0.5, 2.0, 20));
+sampler = CLHSampler(dims=[Categorical(3), Categorical(4), Continuous(),
                            Continuous(), Continuous(), Continuous()])
 iap, res = hyperlearn!(model, pars, (@views ds_train_rnd[inds]);
-                       n_samples = 5, sampler = sampler,
+                       n_samples = 20, sampler = sampler,
                        ws = [30.0, 1.0], int = true);
 GC.gc()
 @save_var exp_path iap.β
@@ -273,16 +274,16 @@ run(`mkdir -p $exp_path`)
 batch_size = floor(Int, n_train * batch_size_prop)
 inds = curr_sampler(A, batch_size)
 model = ACE
-pars = OrderedDict( :body_order        => [2, 4],
-                    :polynomial_degree => [7, 10],
-                    :rcutoff           => LinRange(4, 5, 5),
-                    :wL                => LinRange(0.5, 2.0, 5),
-                    :csp               => LinRange(0.5, 2.0, 5),
-                    :r0                => LinRange(0.5, 2.0, 5));
-sampler = CLHSampler(dims=[Categorical(2), Categorical(2), Continuous(),
+pars = OrderedDict( :body_order        => [2, 3, 4],
+                    :polynomial_degree => [7, 8, 9, 10],
+                    :rcutoff           => LinRange(4, 5, 20),
+                    :wL                => LinRange(0.5, 2.0, 20),
+                    :csp               => LinRange(0.5, 2.0, 20),
+                    :r0                => LinRange(0.5, 2.0, 20));
+sampler = CLHSampler(dims=[Categorical(3), Categorical(4), Continuous(),
                            Continuous(), Continuous(), Continuous()])
 iap, res = hyperlearn!(model, pars, (@views ds_train_rnd[inds]);
-                       n_samples = 5, sampler = sampler,
+                       n_samples = 20, sampler = sampler,
                        ws = [30.0, 1.0], int = true);
 GC.gc()
 @save_var exp_path iap.β
