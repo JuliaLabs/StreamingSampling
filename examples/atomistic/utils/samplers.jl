@@ -32,8 +32,10 @@ end
 
 # DPP-based sampling method
 function dpp_sample(A, n; distance = Distances.Euclidean())
+
     # Compute a kernel matrix for the points in x
-    L = pairwise(distance, A')
+    D = pairwise(distance, A')
+    L = exp.(-D.^2)
     
     # Form an L-ensemble based on the L matrix
     dpp = EllEnsemble(L)
