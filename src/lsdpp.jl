@@ -28,7 +28,8 @@ function compute_weights(sampler::LSDPP, features::Matrix{Float64})
     # Get number of features
     N, _ = size(features)
     # Compute pairwise Euclidean distances on the transposed features
-    K = pairwise(Distances.Euclidean(), features')
+    D = pairwise(Distances.Euclidean(), features')
+    K = exp.(-D.^2)
     # Form an L-ensemble based on the kernel matrix K
     dpp = EllEnsemble(K)
     # Scale so that the expected size is 1
