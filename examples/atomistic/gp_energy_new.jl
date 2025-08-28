@@ -32,8 +32,8 @@ metrics = T.(zeros(1000, 20))
 file_paths = ["$(ds_path)/Hf/config_data/Hf2_gas_form_sorted.extxyz",
               "$(ds_path)/Hf/config_data/Hf2_mp103_EOS_1D_form_sorted.extxyz", 
               "$(ds_path)/Hf/config_data/Hf2_mp103_EOS_3D_form_sorted.extxyz",
-              "$(ds_path)/Hf/config_data/Hf2_mp103_EOS_6D_form_sorted.extxyz",
-              "$(ds_path)/Hf/config_data/Hf128_MC_rattled_mp100_form_sorted.extxyz"
+	      "$(ds_path)/Hf/config_data/Hf2_mp103_EOS_6D_form_sorted.extxyz",
+              "$(ds_path)/Hf/config_data/Hf128_MC_rattled_mp100_form_sorted.extxyz",
               "$(ds_path)/Hf/config_data/Hf128_MC_rattled_mp103_form_sorted.extxyz",
               "$(ds_path)/Hf/config_data/Hf128_MC_rattled_random_form_sorted.extxyz",
               "$(ds_path)/Hf/config_data/Hf_mp100_EOS_1D_form_sorted.extxyz",
@@ -104,20 +104,22 @@ n_test = length(ds_test)
 println("n_train = $n_train, n_test = $n_test")
 count=1
 
+for j in 1:20
 for p in [0.2, 0.4, 0.6, 0.8, 1.0]
     for i in [1e1] #[1e1, 1e2, 1e3, 1e4]
-        for j in 1:50
+        
         rnd_inds = randperm(n_train)
-        ds_train_copy = deepcopy(ds_train)
-        ds_train_copy =  @views ds_train_copy[rnd_inds]
+        #ds_train_copy = deepcopy(ds_train)
+        #ds_train_copy =  @views ds_train_copy[rnd_inds]
+        ds_train = @views ds_train[rnd_inds]
         spath_exact = "$res_path_exact/$p-$i/"
         run(`mkdir -p $spath_exact`)
-        nb=1000
-        e_test_metrics_exact,  μpt_exact, σpt_exact =  fit_gpr_exact(spath_exact, ds_train_copy[1:Int64(floor(n_train*p))], ds_test, basis; gamma=i, lamda=1.0, nb=nb)
+        nb=2000
+        e_test_metrics_exact,  μpt_exact, σpt_exact =  fit_gpr_exact(spath_exact, ds_train[1:Int64(floor(n_train*p))], ds_test, basis; gamma=i, lamda=1.0, nb=nb)
         for tol in [1e-4]#, 1e-6]
             spath_approx = "$res_path_approx/$p-$i-$tol/"
             run(`mkdir -p $spath_approx`)
-            e_test_metrics_approx,  μpt_approx, σpt_approx = fit_gpr_approx(spath_approx, ds_train_copy[1:Int64(floor(n_train*p))], ds_test, basis, gamma=i, lamda=1.0, tol=tol, nb=nb)        
+            e_test_metrics_approx,  μpt_approx, σpt_approx = fit_gpr_approx(spath_approx, ds_train[1:Int64(floor(n_train*p))], ds_test, basis, gamma=i, lamda=1.0, tol=tol, nb=nb)        
             μdiff = norm(μpt_exact - μpt_approx) / norm(μpt_exact)
             σdiff =  norm(σpt_approx -  σpt_exact) / norm(σpt_exact)
             μdiff_abs = norm(μpt_exact - μpt_approx)
@@ -139,13 +141,15 @@ for p in [0.2, 0.4, 0.6, 0.8, 1.0]
             metrics[count, 15] = T(σdiff)
             metrics[count, 16] = T(μdiff_abs)
             metrics[count, 17] = T(σdiff_abs)
-            metrics[count, 18] = spd_distance(σpt_exact, σpt_approx)
+            #println("Start spd_distance")
+            #metrics[count, 18] = spd_distance(σpt_exact, σpt_approx)
             CSV.write("hfo_metrics_$(T)_$(tol)_$(i)_$(p).csv",  Tables.table(transpose(metrics[count,:])), writeheader=false, append=true)
+            #println("end spd_distance")
             println(transpose(metrics[count,:]))
             count += 1
         end
     end
-    end
+end
 end
 CSV.write("all_together.csv",  Tables.table(transpose(metrics[:,:])), writeheader=false, append=true)
 

@@ -125,7 +125,7 @@ for p in [0.2, 0.4, 0.6, 0.8, 1.0]
             metrics[counter, 9] =  T(10) #poly
             metrics[counter, 10] = T(e_test_metrics_exact["e_test_mae"])
             metrics[counter, 11] = T(e_test_metrics_approx["e_test_mae"])
-            metrics[counter, 12] = T(e_test_metrics_exact["e_test_rmse")]
+	    metrics[counter, 12] = T(e_test_metrics_exact["e_test_rmse"])
             metrics[counter, 13] = T(e_test_metrics_approx["e_test_rmse"])
             metrics[counter, 14] = T(μdiff)
             metrics[counter, 15] = T(σdiff)
