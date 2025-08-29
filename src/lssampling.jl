@@ -12,7 +12,7 @@ using Printf
 using Random
 using Statistics
 using StatsBase
-
+using Roots
 
 # Samplers
 abstract type Sampler end
