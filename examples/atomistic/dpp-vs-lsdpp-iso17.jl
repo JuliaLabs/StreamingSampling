@@ -21,12 +21,13 @@ n = 200
 N = 6000
 
 # Sampling by DPP
-Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
+Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
 @time begin
     ch = chunk_iterator(file_paths; chunksize=N)
     chunk, _ = take!(ch)
     features = create_features(chunk)
-    K = pairwise(Euclidean(), features')
+    D = pairwise(Euclidean(), features')
+    K = exp.(-D.^2)
     dpp = EllEnsemble(K)
     rescale!(dpp, n)
     dpp_probs = Determinantal.inclusion_prob(dpp)
@@ -37,7 +38,7 @@ features = nothing;
 GC.gc()
 
 # Sampling by LSDPP
-Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
+Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
 @time begin
     lsdpp = LSDPP(file_paths; chunksize=1500, max=N)
     lsdpp_probs = inclusion_prob(lsdpp, n)
