@@ -10,12 +10,13 @@ file_paths = ["data1.txt", "data2.txt", "data3.txt", "data4.txt"]
 generate_data(file_paths; N=N, feature_size=50);
 
 # Sampling by DPP
-Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
+Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
 @time begin
     ch = chunk_iterator(file_paths; chunksize=N)
     chunk, _ = take!(ch)
     features = create_features(chunk)
-    K = pairwise(Euclidean(), features')
+    D = pairwise(Euclidean(), features')
+    K = exp.(-D.^2)
     dpp = EllEnsemble(K)
     rescale!(dpp, n)
     dpp_probs = Determinantal.inclusion_prob(dpp)
