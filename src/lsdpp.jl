@@ -36,7 +36,7 @@ function compute_weights(sampler::LSDPP, features::Matrix{Float64})
     # Form an L-ensemble based on the kernel matrix K
     dpp = EllEnsemble(K)
     # Scale so that the expected size is 1
-    rescale!(dpp, 50)
+    rescale!(dpp, 1)
     # Compute inclusion probabilities.
     inclusion_probs = Determinantal.inclusion_prob(dpp)
     return inclusion_probs

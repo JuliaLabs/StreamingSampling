@@ -36,6 +36,7 @@ function compute_weights(sampler::Sampler, ch::Channel;
     fs = create_features(elems)
     # Compute a weight for each feature
     ws = compute_weights(sampler, fs)
+    min = minimum(ws)
     # Allocate global weights
     gws = fill(-1.0, max) # error if max is Inf, use ch.data[ch.n_avail_items][2][end] or similar
     gws[ginds] .= ws
@@ -66,6 +67,7 @@ function compute_weights(sampler::Sampler, ch::Channel;
         
         # Update weights: compute a weight for each feature
         ws = compute_weights(sampler, fs)
+        min = minimum([ws; min])
         
         # Compute functions to impute values for merging process
         ws1 = Float64[]; ws2 = Float64[];
@@ -109,7 +111,7 @@ function compute_weights(sampler::Sampler, ch::Channel;
         iteration += 1
         @printf("No. of processed elements: %d.\n", nelems)
     end
-    
+    println("Minimum weight: $min")
     @printf("Processing complete. Weights: %d\n", length(gws))
     return gws
 end
