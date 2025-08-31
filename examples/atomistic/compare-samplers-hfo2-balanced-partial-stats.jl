@@ -163,9 +163,9 @@ function create_features(chunk::Matrix)
 end
 N = size(A, 1)
 N2 = ceil(Int, N/2)
-lsdpp = LSDPP(Matrix(A); chunksize=min(N2, 2000),
+lsdpp = LSDPP(Matrix(A); chunksize=min(N2, 1000), subchunksize=100,
               max=Inf, randomized=false)
-function lsdpp_sample(A, n; chunksize=2000, buffersize=1,
+function lsdpp_sample(A, n; chunksize=1000, subchunksize=100, buffersize=1,
                       max=Inf, randomized=false)
     global lsdpp
     inds = sample(lsdpp, n)

@@ -40,7 +40,7 @@ GC.gc()
 # Sampling by LSDPP
 Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
 @time begin
-    lsdpp = LSDPP(file_paths; chunksize=1500, max=N)
+    lsdpp = LSDPP(file_paths; chunksize=1000, subchunksize=100, max=N)
     lsdpp_probs = inclusion_prob(lsdpp, n)
     lsdpp_indexes = sample(lsdpp, n)
 end

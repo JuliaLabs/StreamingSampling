@@ -1,6 +1,6 @@
 # Lazy chunk iterator functions: randomized and sequencial implementations
 
-function chunk_iterator(file_paths::Vector{String}; chunksize=200,
+function chunk_iterator(file_paths::Vector{String}; chunksize=100,
                         buffersize=32, randomized=true)
     if randomized
         return chunk_iterator_rnd(file_paths; chunksize=chunksize,
@@ -11,7 +11,7 @@ function chunk_iterator(file_paths::Vector{String}; chunksize=200,
     end
 end
 
-function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=200, buffersize=32)
+function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=100, buffersize=32)
     return Channel{Tuple{Vector,Vector{Int}}}(buffersize) do ch
         # First pass to know file positions
         file_numbers = []
@@ -56,7 +56,7 @@ function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=200, buffersiz
     end
 end
 
-function chunk_iterator_seq(file_paths::Vector{String}; chunksize=200, buffersize=32)
+function chunk_iterator_seq(file_paths::Vector{String}; chunksize=100, buffersize=32)
     return Channel{Tuple{Vector,Vector{Int}}}(buffersize) do ch
         global_counter = 1
         current_chunk = []
@@ -82,7 +82,7 @@ function chunk_iterator_seq(file_paths::Vector{String}; chunksize=200, buffersiz
     end
 end
 
-function chunk_iterator(A::Matrix; chunksize=2000, buffersize=32, randomized=true)
+function chunk_iterator(A::Matrix; chunksize=100, buffersize=32, randomized=true)
     N = size(A, 1)
     inds = randomized ? randperm(N) : collect(1:N)
     n_chunks = ceil(Int, N / chunksize)

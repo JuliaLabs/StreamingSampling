@@ -18,7 +18,7 @@ file_paths = ["data/iso17/my_iso17_train.extxyz"]
 
 # Sample size and dataset size
 n = 200
-N = 6000
+N = 4000
 
 # Sampling by DPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
@@ -40,7 +40,7 @@ GC.gc()
 # Sampling by LSDPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
 @time begin
-    lsdpp = LSDPP(file_paths; chunksize=1500, max=N)
+    lsdpp = LSDPP(file_paths; chunksize=1000, subchunksize=100, max=N)
     lsdpp_probs = inclusion_prob(lsdpp, n)
     lsdpp_indexes = sample(lsdpp, n)
 end
@@ -56,25 +56,25 @@ plot!(ylabel="LSDPP inclusion probabilities")
 plot!(legend=false, dpi=300)
 savefig("dpp-probs-vs-lsdpp-probs-iso17.png")
 
-# DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
-# sampling n points from a set of size N, with each point of size M
-iterations = 20_000_000 # Use 20_000_000
-lsdpp_freqs = relative_frequencies(lsdpp, n, iterations)
-scatter(dpp_probs, lsdpp_freqs, color="red", alpha=0.5)
-plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
-plot!(xlabel="DPP inclusion probabilities")
-plot!(ylabel="LSDPP inclusion frequencies")
-plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-freqs-iso17.png")
+## DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
+## sampling n points from a set of size N, with each point of size M
+#iterations = 20_000_000 # Use 20_000_000
+#lsdpp_freqs = relative_frequencies(lsdpp, n, iterations)
+#scatter(dpp_probs, lsdpp_freqs, color="red", alpha=0.5)
+#plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
+#plot!(xlabel="DPP inclusion probabilities")
+#plot!(ylabel="LSDPP inclusion frequencies")
+#plot!(legend=false, dpi=300)
+#savefig("dpp-probs-vs-lsdpp-freqs-iso17.png")
 
-# DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 
-# random points, when sampling n points from a set of size N, with each point of size M
-set = rand(1:N, 2)
-iterations = 10 # Use 10_000_000
-lsdpp_set_freqs = relative_frequencies(lsdpp, set, n, iterations)
-dpp_set_freqs = det(marginal_kernel(dpp)[set, set])
-@printf("DPP inclusion probability for dataset %s is %f \n", 
-         string(set), dpp_set_freqs)
-@printf("LSDPP inclusion probability for dataset %s is %f \n",
-         string(set), lsdpp_set_freqs)
+## DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 
+## random points, when sampling n points from a set of size N, with each point of size M
+#set = rand(1:N, 2)
+#iterations = 10 # Use 10_000_000
+#lsdpp_set_freqs = relative_frequencies(lsdpp, set, n, iterations)
+#dpp_set_freqs = det(marginal_kernel(dpp)[set, set])
+#@printf("DPP inclusion probability for dataset %s is %f \n", 
+#         string(set), dpp_set_freqs)
+#@printf("LSDPP inclusion probability for dataset %s is %f \n",
+#         string(set), lsdpp_set_freqs)
 

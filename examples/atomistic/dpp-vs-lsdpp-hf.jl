@@ -14,19 +14,34 @@ basis = ACE(species           = [:Hf],
             r0                = 1.0);
 
 # Data
-file_paths = ["data/Hf/Hf2_gas_form_sorted.extxyz",
-              "data/Hf/Hf2_mp103_EOS_1D_form_sorted.extxyz",
-              "data/Hf/Hf2_mp103_EOS_3D_form_sorted.extxyz",
-              "data/Hf/Hf2_mp103_EOS_6D_form_sorted.extxyz",
-              "data/Hf/Hf128_MC_rattled_mp100_form_sorted.extxyz",
-              "data/Hf/Hf128_MC_rattled_mp103_form_sorted.extxyz",
-              "data/Hf/Hf128_MC_rattled_random_form_sorted.extxyz",
-              "data/Hf/Hf_mp100_EOS_1D_form_sorted.extxyz",
-              "data/Hf/Hf_mp100_primitive_EOS_1D_form_sorted.extxyz"]
+path = "data/data_mv_dionysios"
+file_paths = ["$path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
+            #"$path/Hf128_MC_rattled_random_form_sorted.extxyz",
+            "$path/Hf_bcc_MC_phonons_form_sorted.extxyz",
+            "$path/Hf_bcc_vacancy_MC_rattled_form_sorted.extxyz",
+            #"$path/Hf_hcp_MC_phonons_form_sorted.extxyz",
+            "$path/Hf_hcp_vacancy_MC_rattled_form_sorted.extxyz",
+            "$path/Hf_MC_rattled_mp1009460_form_sorted.extxyz",
+            #"$path/Hf_MC_rattled_mp100_form_sorted.extxyz",
+            "$path/Hf_MC_rattled_mp103_form_sorted.extxyz",
+            "$path/Hf.mp100.0GPa.0K.phonons.form_sorted.extxyz",
+            #"$path/Hf.mp100.0GPa.2073K.phonons.form_sorted.extxyz",
+            "$path/Hf.mp100.100GPa.0K.phonons.form_sorted.extxyz",
+            "$path/Hf.mp100.60GPa.0K.phonons.form_sorted.extxyz",
+            #"$path/Hf.mp100.80GPa.0K.phonons.form_sorted.extxyz",
+            "$path/Hf_mp1009460_EOS_ibrav_convex_hull_form_sorted.extxyz",
+            "$path/Hf_mp100_calphy_form_sorted.extxyz",
+            #"$path/Hf_mp100_EOS_ibrav_convex_hull_form_sorted.extxyz",
+            "$path/Hf.mp103.0GPa.0K.phonons.form_sorted.extxyz",
+            "$path/Hf.mp103.0GPa.293K.phonons.form_sorted.extxyz",
+            #"$path/Hf_mp103_EOS_ibrav_convex_hull_form_sorted.extxyz",
+            "$path/Hf_mp8640_EOS_ibrav_convex_hull_form_sorted.extxyz"]
+
 
 # Sample size and dataset size
 n = 200
-N = 6000
+ch = chunk_iterator(file_paths; chunksize=1000)
+N = ch.data[ch.n_avail_items][2][end] # 4378
 
 # Sampling by DPP
 Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
@@ -45,13 +60,15 @@ chunk = nothing;
 features = nothing;
 GC.gc()
 
+
 # Sampling by LSDPP
-Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
+Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
 @time begin
-    lsdpp = LSDPP(file_paths; chunksize=1000, max=N)
+    lsdpp = LSDPP(file_paths; chunksize=2000, subchunksize=200, max=N)
     lsdpp_probs = inclusion_prob(lsdpp, n)
     lsdpp_indexes = sample(lsdpp, n)
 end
+
 
 # Tests and plots
 
@@ -64,25 +81,25 @@ plot!(ylabel="LSDPP inclusion probabilities")
 plot!(legend=false, dpi=300)
 savefig("dpp-probs-vs-lsdpp-probs-hf.png")
 
-# DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
-# sampling n points from a set of size N, with each point of size M
-iterations = 20_000_00 # Use 20_000_000
-lsdpp_freqs = relative_frequencies(lsdpp, n, iterations)
-scatter(dpp_probs, lsdpp_freqs, color="red", alpha=0.5)
-plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
-plot!(xlabel="DPP inclusion probabilities")
-plot!(ylabel="LSDPP inclusion frequencies")
-plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-freqs-hf.png")
+## DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
+## sampling n points from a set of size N, with each point of size M
+#iterations = 20_000_00 # Use 20_000_000
+#lsdpp_freqs = relative_frequencies(lsdpp, n, iterations)
+#scatter(dpp_probs, lsdpp_freqs, color="red", alpha=0.5)
+#plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
+#plot!(xlabel="DPP inclusion probabilities")
+#plot!(ylabel="LSDPP inclusion frequencies")
+#plot!(legend=false, dpi=300)
+#savefig("dpp-probs-vs-lsdpp-freqs-hf.png")
 
-# DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 
-# random points, when sampling n points from a set of size N, with each point of size M
-set = rand(1:N, 2)
-iterations = 10 # Use 10_000_000
-lsdpp_set_freqs = relative_frequencies(lsdpp, set, n, iterations)
-dpp_set_freqs = det(marginal_kernel(dpp)[set, set])
-@printf("DPP inclusion probability for dataset %s is %f \n", 
-         string(set), dpp_set_freqs)
-@printf("LSDPP inclusion probability for dataset %s is %f \n",
-         string(set), lsdpp_set_freqs)
+## DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 
+## random points, when sampling n points from a set of size N, with each point of size M
+#set = rand(1:N, 2)
+#iterations = 10 # Use 10_000_000
+#lsdpp_set_freqs = relative_frequencies(lsdpp, set, n, iterations)
+#dpp_set_freqs = det(marginal_kernel(dpp)[set, set])
+#@printf("DPP inclusion probability for dataset %s is %f \n", 
+#         string(set), dpp_set_freqs)
+#@printf("LSDPP inclusion probability for dataset %s is %f \n",
+#         string(set), lsdpp_set_freqs)
 
