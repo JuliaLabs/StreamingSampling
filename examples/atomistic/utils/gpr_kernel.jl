@@ -42,7 +42,7 @@ function Compute_DotProduct_Kernel(
 
     return (matAB ./ sqrt.(C .* C')).^2
 end
-
+#=
 function Compute_Distance_Matrix(
     A::AbstractMatrix{T}) where {T<:Real}
 
@@ -51,6 +51,21 @@ function Compute_Distance_Matrix(
     C = T.(diag(matAA) .* ones(m, m))
     return ((-2) .* matAA) +  (C) + (C')
 
+end
+=#
+
+function Compute_Distance_Matrix(
+    A::AbstractMatrix{T}) where {T<:Real}
+
+   G = A * A'                   # GEMM on GPU
+   s = sum(abs2, A; dims=2)     # m×1 squared norms (on GPU)
+   D = @. s + s' - 2G           # broadcast on GPU
+   # Clamp tiny negatives from roundoff (also fixes diagonal if it's -0)
+   D .= max.(D, zero(T))
+   # Zero the diagonal without indexing (broadcast with UniformScaling I)
+   D[diagind(D)] .*=0.0
+
+   return D
 end
 
 function Gaussian_Kernel(

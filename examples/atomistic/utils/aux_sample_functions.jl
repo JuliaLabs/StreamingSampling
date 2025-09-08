@@ -264,7 +264,7 @@ function sample_experiment!(res_path, j, curr_sampler, batch_size_prop, n_train,
         println(e)
     end
 end
-
+#=
 function fit_gpr_exact(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, nb=1000)
 
     lp_train = PotentialLearning.LinearProblem(ds_train)
@@ -370,7 +370,7 @@ function fit_gpr_exact(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, nb=
     
 
     # Plot and save results
-#=
+
     e_plot = plot_energy(e_train, e_train_pred,
     e_test, e_test_pred)
     @save_fig path e_plot
@@ -381,13 +381,13 @@ function fit_gpr_exact(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, nb=
 
     e_test_plot = plot_energy(e_test, e_test_pred)
     @save_fig path e_test_plot
-=#
+
 
         return e_test_metrics,  μpt, σpt
 end
-
+=#
 ################# Dagger GPU #################
-
+#=
 
 function fit_gpr_approx(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, tol=1e-4, nb=1000)
 
@@ -443,13 +443,14 @@ function fit_gpr_approx(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, to
     println("Before starting cholesky")
     region_size = 128
     t_mixed = 0.0
-
+    
     Dagger.with_options(;scope=Dagger.scope(cuda_gpu=1)) do    
         ScopedValues.with(Dagger.DATADEPS_REGION_SPLIT=>region_size,
         Dagger.DATADEPS_SCHEDULER=>:roundrobin) do
             MixedPrecisionChol!(DA_mixed, LowerTriangular, MP)
         end
     end
+    
     println("Done Mixed precision with tol = $tol")
 
     BLAS.set_num_threads(Threads.nthreads())
@@ -502,7 +503,7 @@ function fit_gpr_approx(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, to
     
 
     # Plot and save results
-#=
+
     e_plot = plot_energy(e_train, e_train_pred,
     e_test, e_test_pred)
     @save_fig path e_plot
@@ -513,10 +514,10 @@ function fit_gpr_approx(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, to
 
     e_test_plot = plot_energy(e_test, e_test_pred)
     @save_fig path e_test_plot
-=#
+
         return e_test_metrics,  μpt, σpt
 end    
-
+=#
 #=
 function spd_distance(A::AbstractMatrix{Float64}, B::AbstractMatrix{Float64})
     # Convert to full matrix if Symmetric
@@ -571,11 +572,14 @@ function fit_gpr_exact_recursive(path, ds_train, ds_test, basis; gamma=1e1, lamd
     test_len = size(test_full, 1)
 
     dataset_full = [train_full; test_full]
-
+    dataset_full_g = CuArray(dataset_full)
     println("Computing distance matrix")
-    time_dist= @elapsed distmat_train = Compute_Distance_Matrix(dataset_full)
+    flush(stdout)
+
+    time_dist= @elapsed distmat_train = Compute_Distance_Matrix(dataset_full_g)
     rbf = RBF(ℓ=gamma)
     println("Computing gaussian kernel with ℓ = $gamma")
+    flush(stdout)
     time_kernel= @elapsed K_mat= Gaussian_Kernel(distmat_train, rbf)
     K_mat[diagind(K_mat)] .+=lamda #lamda
     GC.gc()    
@@ -595,16 +599,19 @@ function fit_gpr_exact_recursive(path, ds_train, ds_test, basis; gamma=1e1, lamd
     #wait.(DA_mixed.chunks)
     #BLAS.set_num_threads(1)
     println("Before starting exact recursive cholesky")
+    flush(stdout)
 
-    Ktt_gpu = CuArray(Ktt)
-    time_exact = @elapsed potrf_recursive!(Ktt_gpu, 4096)
-
+    
+    time_exact = @elapsed CUSOLVER.potrf!('L', Ktt) #potrf_recursive!(Ktt, 4096)
     rhs1 = CuArray(ytrue[:,:])
 
-    CUBLAS.trsm!('L', 'L', 'N', 'N', 1.0, Ktt_gpu, rhs1) 
-    CUBLAS.trsm!('L', 'L', 'T', 'N', 1.0, Ktt_gpu, rhs1)
 
-    μpt = Kk * Array(rhs1)
+    tsolve = @elapsed begin 
+    CUBLAS.trsm!('L', 'L', 'N', 'N', 1.0, Ktt, rhs1) 
+    CUBLAS.trsm!('L', 'L', 'T', 'N', 1.0, Ktt, rhs1)
+    end
+
+    μpt = Kk * rhs1
 
     μ_train = μpt[1:train_len, :]
     μ_test = μpt[train_len+1:end, :]
@@ -614,22 +621,27 @@ function fit_gpr_exact_recursive(path, ds_train, ds_test, basis; gamma=1e1, lamd
     n_atoms_test = length.(get_system.(ds_test))
 
     e_train = get_all_energies(ds_train) ./ n_atoms_train
-    e_train_pred = μ_train[1:e_train_len, :] ./ n_atoms_train
+    e_train_pred = Array(μ_train[1:e_train_len, :]) ./ n_atoms_train
 
     #@save_var path e_train
     #@save_var path e_train_pred
 
     e_test = get_all_energies(ds_test) ./ n_atoms_test
-    e_test_pred = μ_test[1:e_test_len, :] ./ n_atoms_test
+    e_test_pred = Array(μ_test[1:e_test_len, :]) ./ n_atoms_test
 
     #@save_var path e_test
     #@save_var path e_test_pred
 
-    Ktp = CuArray(Kpt')
-    CUBLAS.trsm!('L', 'L', 'N', 'N', 1.0, Ktt_gpu, Ktp) 
-    CUBLAS.trsm!('L', 'L', 'T', 'N', 1.0, Ktt_gpu, Ktp)
+    Ktp = copy(Kpt')
 
-    σpt = Kpp - Kpt * Array(Ktp)
+    tsolve += @elapsed begin
+    CUBLAS.trsm!('L', 'L', 'N', 'N', 1.0, Ktt, Ktp) 
+    CUBLAS.trsm!('L', 'L', 'T', 'N', 1.0, Ktt, Ktp)
+    end
+
+
+    σpt = Kpp - Kpt * Ktp
+    σpt = Array(σpt)
     #σpt = Kpp - Kpt * Ktp
    #display(σpt)
 
@@ -658,7 +670,7 @@ function fit_gpr_exact_recursive(path, ds_train, ds_test, basis; gamma=1e1, lamd
     e_test_plot = plot_energy(e_test, e_test_pred)
     @save_fig path e_test_plot
 =#
-        return e_test_metrics,  μpt, σpt, time_exact
+        return e_test_metrics,  μpt, σpt, time_exact, tsolve
 end
 
 function fit_gpr_approx_recursive(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, tol=1e-4, precisions=[Float16, Float16, Float16, Float16, Float16, Float64])
@@ -679,14 +691,16 @@ function fit_gpr_approx_recursive(path, ds_train, ds_test, basis; gamma=1e1, lam
     test_len = size(test_full, 1)
 
     dataset_full = [train_full; test_full]
-
+    dataset_full_g = CuArray(dataset_full)
+    dataset_full = nothing
     println("Computing distance matrix")
-    time_dist= @elapsed distmat_train = Compute_Distance_Matrix(dataset_full)
+    flush(stdout)
+    time_dist= @elapsed distmat_train = Compute_Distance_Matrix(dataset_full_g)
     rbf = RBF(ℓ=gamma)
     println("Computing gaussian kernel with ℓ = $gamma")
+    flush(stdout)
     time_kernel= @elapsed K_mat= Gaussian_Kernel(distmat_train, rbf)
     K_mat[diagind(K_mat)] .+=lamda #lamda
-    K_mat_copy = copy(K_mat);
     GC.gc()    
 
 
@@ -701,18 +715,20 @@ function fit_gpr_approx_recursive(path, ds_train, ds_test, basis; gamma=1e1, lam
     e_test = lp_test.e
 
     println("Before starting mixed precision recursive cholesky")
+    flush(stdout)
 
-    Ktt_gpu = CuArray(Ktt)
-    Ktt_to_factor = SymmMixedPrec(Ktt_gpu, 'L'; precisions=precisions);
+    Ktt_to_factor = SymmMixedPrec(Ktt, 'L'; precisions=precisions);
     time_approx = @elapsed potrf_recursive!(Ktt_to_factor);
     Ktt_to_factor = reconstruct_matrix(Ktt_to_factor)
 
     rhs1 = CuArray(ytrue[:,:])
+
+    tsolve = @elapsed begin
     CUBLAS.trsm!('L', 'L', 'N', 'N', 1.0, Ktt_to_factor, rhs1) 
     CUBLAS.trsm!('L', 'L', 'T', 'N', 1.0, Ktt_to_factor, rhs1)
+    end
 
-
-    μpt = Kk * Array(rhs1)
+    μpt = Kk * rhs1
 
     μ_train = μpt[1:train_len, :]
     μ_test = μpt[train_len+1:end, :]
@@ -722,22 +738,26 @@ function fit_gpr_approx_recursive(path, ds_train, ds_test, basis; gamma=1e1, lam
     n_atoms_test = length.(get_system.(ds_test))
 
     e_train = get_all_energies(ds_train) ./ n_atoms_train
-    e_train_pred = μ_train[1:e_train_len, :] ./ n_atoms_train
+    e_train_pred = Array(μ_train[1:e_train_len, :]) ./ n_atoms_train
 
     #@save_var path e_train
     #@save_var path e_train_pred
 
     e_test = get_all_energies(ds_test) ./ n_atoms_test
-    e_test_pred = μ_test[1:e_test_len, :] ./ n_atoms_test
+    e_test_pred = Array(μ_test[1:e_test_len, :]) ./ n_atoms_test
 
     #@save_var path e_test
     #@save_var path e_test_pred
 
-    Ktp = CuArray(Kpt')
+    Ktp = copy(Kpt')
+    
+    tsolve += @elapsed begin
     CUBLAS.trsm!('L', 'L', 'N', 'N', 1.0, Ktt_to_factor, Ktp) 
     CUBLAS.trsm!('L', 'L', 'T', 'N', 1.0, Ktt_to_factor, Ktp)
+    end 
 
-    σpt = Kpp - Kpt * Array(Ktp)
+
+    σpt = Array(Kpp - Kpt * Ktp)
     #σpt = Kpp - Kpt * Ktp
     #display(σpt)
 
@@ -767,5 +787,5 @@ function fit_gpr_approx_recursive(path, ds_train, ds_test, basis; gamma=1e1, lam
     e_test_plot = plot_energy(e_test, e_test_pred)
     @save_fig path e_test_plot
 =#
-        return e_test_metrics,  μpt, σpt, time_approx
+        return e_test_metrics,  μpt, σpt, time_approx, tsolve
 end    
