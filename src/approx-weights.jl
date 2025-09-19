@@ -38,7 +38,8 @@ function compute_weights(sampler::Sampler, ch::Channel;
     ws = compute_weights(sampler, fs)
     min = minimum(ws)
     # Allocate global weights
-    gws = fill(-1.0, max) # error if max is Inf, use ch.data[ch.n_avail_items][2][end] or similar
+    gws = fill(-1.0, max) # error if max is Inf, 
+                          # use maximum([ maximum(ch.data[i][2]) for i in 1:ch.n_avail_items]) or similar
     gws[ginds] .= ws
     # Advance number of processed elements
     nelems = length(ginds)
