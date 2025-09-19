@@ -5,8 +5,26 @@ function sample(sampler::Sampler, n::Int64; replace=false)
     probs = inclusion_prob(sampler, n)
     return sample(probs, n)
 end
+#function sample(sampler::Sampler, n::Int64; replace=false)
+#    return sample(sampler.weights, n)
+#end
+
 
 # Conditional poisson sampling
+#function sample(p::Vector{Float64}, n::Int)
+#    N = length(p)
+#    while true
+#        S = Int[]
+#        @inbounds for i in 1:N
+#            if rand() < p[i]; push!(S, i); end
+#        end
+#        if length(S) == n
+#            return S
+#        end
+#    end
+#end
+
+# Sampling function inspired by conditional poisson sampling
 function sample(probabilities::Vector{Float64}, n::Int)
 
     N = length(probabilities)
