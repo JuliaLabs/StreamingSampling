@@ -15,12 +15,12 @@ function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=100, buffersiz
     return Channel{Tuple{Vector,Vector{Int}}}(buffersize) do ch
         # First pass to know file positions
         file_numbers = []
-        file_positions = []
+        elem_positions = []
         for (i,filepath) in enumerate(file_paths)
             open(filepath, "r") do io
                 while !eof(io)
                     push!(file_numbers, i)
-                    push!(file_positions, position(io))
+                    push!(elem_positions, position(io))
                     element = read_element(io)
                 end
             end
@@ -29,19 +29,19 @@ function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=100, buffersiz
         # Randomize
         inds = randperm(length(file_numbers))
         file_numbers = file_numbers[inds]
-        file_positions = file_positions[inds]
-        
+        elem_positions = elem_positions[inds]
+
         # Second pass to create randomized chunks
         global_counter = 1
         current_chunk = []
         current_chunk_indices = Int[]
         
-        for (file_nbr, file_pos) in zip(file_numbers, file_positions)
+        for (file_nbr, elem_pos) in zip(file_numbers, elem_positions)
             open(file_paths[file_nbr], "r") do io
-                seek(io, file_pos)
+                seek(io, elem_pos)
                 element = read_element(io)
                 push!(current_chunk, element)
-                push!(current_chunk_indices, global_counter)
+                push!(current_chunk_indices, inds[global_counter])
                 global_counter += 1
                 if length(current_chunk) == chunksize
                     put!(ch, (copy(current_chunk), copy(current_chunk_indices)))
