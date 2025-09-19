@@ -1,23 +1,15 @@
 # Inclusion probabilities and relative frequencies functions
 
 # Transform weights into inclusion probabilities
+# 1: p(w)=x*w+y
+# 2: Sum constraint: sum(probs)=n => sum(p.(ws))=n
+# 3: Minimum probability constraint: p(w_min)=w_min
 function inclusion_prob(sampler::Sampler, n::Int)
-#    @views ws = sampler.weights
-#    # Squashing function h(t)∈(0,1)
-#    h(t) = 1-exp(-t)
-#    # Find a scale α>0 so that the sum hits the target
-#    f(α) = sum(h.(α.*ws)) - n
-#    α = find_zero(f, (-2n, 2n), Bisection())
-#    return h.(α.*ws)
-
-# 1) Sum constraint: sum(probs)=n => sum(x*ws.+y)=n
-# 2) Minimum probability constraint: 
-#      x*minimum(ws)+y= n/N - 1/12000 (empirical constraint)
     @views ws = sampler.weights
     N = length(ws)
     A = [ sum(ws) N;
           minimum(ws) 1.0]
-    min_prob = minimum(sampler.weights) # 0.0005 # 0.006 # 0.00022092470374484942 #0.008453787765852094 #n/2N #n/N - 1/12000
+    min_prob = minimum(sampler.weights)
     b = [n, min_prob]
     x, y = A \ b
     return x*ws.+y
