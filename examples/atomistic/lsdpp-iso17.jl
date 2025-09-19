@@ -17,6 +17,6 @@ basis = ACE(species           = [:C, :O, :H],
 file_paths = ["data/iso17/my_iso17_train.extxyz"] 
 
 # Sample by LSDPP
-lsdpp = LSDPP(file_paths; chunksize=500, max=5000)
+lsdpp = LSDPP(file_paths; chunksize=2000, subchunksize=200)
 lsdpp_indexes = sample(lsdpp, n)
 
