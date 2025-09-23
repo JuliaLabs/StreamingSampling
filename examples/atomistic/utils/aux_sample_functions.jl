@@ -542,7 +542,7 @@ function spd_distance(A::AbstractMatrix{Float64}, B::AbstractMatrix{Float64})
     return sqrt(sum(log.(λ).^2))
 end
 =#
-function spd_distance(A::AbstractMatrix{Float64}, B::AbstractMatrix{Float64})
+#=function spd_distance(A::AbstractMatrix{Float64}, B::AbstractMatrix{Float64})
     # Convert to dense and ensure SPD
     A_full = A + 1000I
     B_full = B + 1000I
@@ -552,7 +552,49 @@ function spd_distance(A::AbstractMatrix{Float64}, B::AbstractMatrix{Float64})
 
     # Use only the real part (imag part is ~1e-25 if matrices are nearly SPD)
     return sqrt(sum(log.(real.(λ)).^2))
+end=#
+#=
+function spd_distance(A::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real})
+    AA = CuArray(A)
+    BB = CuArray(B)
+    F = cholesky(BB)                 # B = L*Lᵀ
+
+    C = (F.L \ (AA / F.L'))            # C = L⁻¹ * A * L⁻ᵀ
+    λ = CUSOLVER.syevd!('N', 'L', C)   # standard symmetric eigvals
+    return sqrt(sum(log.(real.(λ)).^2))
 end
+=#
+
+function spd_distance(A::AbstractMatrix{<:Real}, B::AbstractMatrix{<:Real};
+                            ϵ0::Float64=1e-12, growth::Float64=10.0, max_tries::Int=6)
+    A = Symmetric( (A + A')/2 )
+    B = (B + B')/2
+
+
+    AA = CuArray(A)
+    BB = CuArray(B)
+    #F = cholesky(BB)                 # B = L*Lᵀ
+
+    # 2) Try Cholesky with incremental jitter
+    F = nothing
+    for k in 0:max_tries
+        ϵ = ϵ0 * growth^k
+        try
+            F = cholesky(Symmetric(BB + ϵ*I))
+            break
+        catch err
+            if k == max_tries
+                rethrow(err)  # genuinely not PD
+            end
+        end
+    end
+
+    C = (F.L \ (AA / F.L'))            # C = L⁻¹ * A * L⁻ᵀ
+    λ = CUSOLVER.syevd!('N', 'L', C)   # standard symmetric eigvals
+    return sqrt(sum(log.(real.(λ)).^2))
+end
+
+
 
 function fit_gpr_exact_recursive(path, ds_train, ds_test, basis; gamma=1e1, lamda=1.0, precisions=[Float64])
 
