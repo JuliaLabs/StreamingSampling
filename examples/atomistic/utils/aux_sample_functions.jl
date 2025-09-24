@@ -10,7 +10,7 @@ function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
     ws, int = [30.0, 1.0], true
     #learn!(lb, ds_train, ws, int)
 
-    lp = PotentialLearning.LinearProblem(ds)
+    lp = PotentialLearning.LinearProblem(ds_train)
     learn!(lp, ws, int; λ=0.8)
     GC.gc()
     resize!(lb.β, length(lp.β))
