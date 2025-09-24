@@ -7,43 +7,40 @@ include("utils/atom-conf-features-extxyz.jl")
 # Basis function to compute ACE descriptors (features)
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 4,
-            rcutoff           = 5.0,
-            wL                = 1.0,
+            polynomial_degree = 16,
+            wL                = 2.0,
             csp               = 1.0,
-            r0                = 1.0);
+            r0                = 1.43,
+            rcutoff           = 4.4 );
 
 # Data
-file_paths = ["data/iso17/my_iso17_train.extxyz"]
+file_paths = ["data/iso17/my_iso_test_part1.extxyz"]
 
 # Sample size and dataset size
-n = 200
+n = 6000
+ch = chunk_iterator(file_paths; chunksize=1000)
 N = maximum([ maximum(ch.data[i][2]) for i in 1:length(ch.data)])
 
 # Sampling by DPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
-@time begin
-    ch = chunk_iterator(file_paths; chunksize=N)
-    chunk, _ = take!(ch)
-    features = create_features(chunk)
-    D = pairwise(Euclidean(), features')
-    K = exp.(-D.^2)
-    dpp = EllEnsemble(K)
-    rescale!(dpp, n)
-    dpp_probs = Determinantal.inclusion_prob(dpp)
-    dpp_indexes = Determinantal.sample(dpp, n)
-end
+ch = chunk_iterator(file_paths; chunksize=N)
+chunk, _ = take!(ch)
+features = create_features(chunk)
+D = pairwise(Euclidean(), features')
+K = exp.(-D.^2)
+dpp = EllEnsemble(K)
+rescale!(dpp, n)
+dpp_probs = Determinantal.inclusion_prob(dpp)
+dpp_indexes = Determinantal.sample(dpp, n)
 chunk = nothing;
 features = nothing;
 GC.gc()
 
 # Sampling by LSDPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
-@time begin
-    lsdpp = LSDPP(file_paths; chunksize=2000, subchunksize=200, max=N)
-    lsdpp_probs = inclusion_prob(lsdpp, n)
-    lsdpp_indexes = sample(lsdpp, n)
-end
+lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
+lsdpp_probs = inclusion_prob(lsdpp, n)
+lsdpp_indexes = sample(lsdpp, n)
 
 # Tests and plots
 
@@ -54,7 +51,23 @@ plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
 plot!(ylabel="LSDPP inclusion probabilities")
 plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-probs-iso17.png")
+savefig("dpp-probs-vs-lsdpp-probs-iso17-1.png")
+
+plot(dpp_probs, color="red", alpha=0.5, label="DPP inclusion probabilities")
+plot!(lsdpp_probs, color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
+plot!(xlabel="Structures", ylabel="Probability", legend=:bottomright)
+savefig("dpp-probs-vs-lsdpp-probs-iso17-2.png")
+
+inds = sortperm(dpp_probs)
+plot(dpp_probs[inds], color="red", alpha=0.5, label="DPP inclusion probabilities")
+plot!(lsdpp_probs[inds], color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
+plot!(xlabel="Structure sorted by DPP probabilities", ylabel="Probability", legend=:bottomright)
+savefig("dpp-probs-vs-lsdpp-probs-iso17-3.png")
+
+plot(cumsum(dpp_probs), color="red", alpha=0.5, label="DPP inclusion probabilities")
+plot!(cumsum(lsdpp_probs), color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
+plot!(xlabel="Structure", ylabel="Probability", legend=:bottomright)
+savefig("dpp-probs-vs-lsdpp-probs-iso17-4.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
 # sampling n points from a set of size N, with each point of size M

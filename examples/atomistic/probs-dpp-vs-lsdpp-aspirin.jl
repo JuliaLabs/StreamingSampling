@@ -57,6 +57,22 @@ plot!(ylabel="LSDPP inclusion probabilities")
 plot!(legend=false, dpi=300)
 savefig("dpp-probs-vs-lsdpp-probs-aspirin.png")
 
+plot(dpp_probs, color="red", alpha=0.5, label="DPP inclusion probabilities")
+plot!(lsdpp_probs, color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
+plot!(xlabel="Structures", ylabel="Probability", legend=:bottomright)
+savefig("dpp-probs-vs-lsdpp-probs-aspirin-2.png")
+
+inds = sortperm(dpp_probs)
+plot(dpp_probs[inds], color="red", alpha=0.5, label="DPP inclusion probabilities")
+plot!(lsdpp_probs[inds], color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
+plot!(xlabel="Structure sorted by DPP probabilities", ylabel="Probability", legend=:bottomright)
+savefig("dpp-probs-vs-lsdpp-probs-aspirin-3.png")
+
+plot(cumsum(dpp_probs), color="red", alpha=0.5, label="DPP inclusion probabilities")
+plot!(cumsum(lsdpp_probs), color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
+plot!(xlabel="Structure", ylabel="Probability", legend=:bottomright)
+savefig("dpp-probs-vs-lsdpp-probs-aspirin-4.png")
+
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
 # sampling n points from a set of size N, with each point of size M
 iterations = 100_000

@@ -45,28 +45,24 @@ N = maximum([ maximum(ch.data[i][2]) for i in 1:length(ch.data)]) # 4378
 
 # Sampling by DPP
 Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
-@time begin
-    ch = chunk_iterator(file_paths; chunksize=N, randomized=false)
-    chunk, _ = take!(ch)
-    features = create_features(chunk)
-    D = pairwise(Euclidean(), features')
-    K = exp.(-D.^2)
-    dpp = EllEnsemble(K)
-    rescale!(dpp, n)
-    dpp_probs = Determinantal.inclusion_prob(dpp)
-    dpp_indexes = Determinantal.sample(dpp, n)
-end
+ch = chunk_iterator(file_paths; chunksize=N, randomized=false)
+chunk, _ = take!(ch)
+features = create_features(chunk)
+D = pairwise(Euclidean(), features')
+K = exp.(-D.^2)
+dpp = EllEnsemble(K)
+rescale!(dpp, n)
+dpp_probs = Determinantal.inclusion_prob(dpp)
+dpp_indexes = Determinantal.sample(dpp, n)
 chunk = nothing;
 features = nothing;
 GC.gc()
 
 # Sampling by LSDPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
-@time begin
-    lsdpp = LSDPP(file_paths; chunksize=2000, subchunksize=200, max=N)
-    lsdpp_probs = inclusion_prob(lsdpp, n)
-    lsdpp_indexes = sample(lsdpp, n)
-end
+lsdpp = LSDPP(file_paths; chunksize=2000, subchunksize=200, max=N)
+lsdpp_probs = inclusion_prob(lsdpp, n)
+lsdpp_indexes = sample(lsdpp, n)
 
 # Tests and plots
 

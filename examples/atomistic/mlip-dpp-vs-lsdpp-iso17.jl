@@ -78,13 +78,13 @@ metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 n_experiments = 1
 
 # Define batch sample sizes
-sample_sizes = [1000, 10_000, 30_000, 50_000]
+sample_sizes = [1000, 5_000, 10_000]
 
 # Setup LSDPP
 lsdpp = deserialize("lsdpp.jls") # lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
 
 # Test dataset size
-m = 50_000
+m = 10_000
 
 # Run experiments
 for j in 1:n_experiments
