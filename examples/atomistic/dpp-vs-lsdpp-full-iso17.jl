@@ -14,8 +14,6 @@ include("utils/plotmetrics.jl")
 include("utils/atom-conf-features-extxyz.jl")
 include("utils/xyz.jl")
 
-# Data #########################################################################
-
 # Define paths and create experiment folder
 train_path = ["data/iso17/my_iso17_train.extxyz"]
 test_path = ["data/iso17/my_iso17_test.extxyz"]
@@ -23,7 +21,6 @@ res_path  = "results-full-hfo2/"
 run(`mkdir -p $res_path`)
 
 # Helper functions
-
 function get_confs(path, inds)
     confs = []
     ch = chunk_iterator(path; chunksize=1000, randomized=false)
@@ -60,14 +57,14 @@ end
 # Define basis
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 16,
+            polynomial_degree = 4, #16,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
             rcutoff           = 4.4 );
 
 # Create metric dataframe
-metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
+metric_names = [:exp_number,  :method, :sample_size, 
                 :e_train_mae, :e_train_rmse, :e_train_rsq,
                 :f_train_mae, :f_train_rmse, :f_train_rsq, :f_train_mean_cos,
                 :e_test_mae,  :e_test_rmse,  :e_test_rsq, 
@@ -80,69 +77,63 @@ metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 # Define number of experiments
 n_experiments = 1
 
-# Define batch sample sizes (proportions)
-#batch_size_props = [0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]
-batch_size_props = [0.1]
+# Define batch sample sizes
+sample_sizes = [1000]
 
+# Setup LSDPP
+lsdpp = deserialize("lsdpp.jls") # lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
 
 # Run experiments
 for j in 1:n_experiments
+    println("Experiment $j")
+
     global metrics
 
     # Create test set
-    test_inds = sort(rand(1:130000, n))
+    test_inds = sort(rand(1:130000, 1000))
     test_confs = get_confs(test_path, test_inds)
     test_ds = calc_descr(test_confs, basis)
-
-
-    # Sample training dataset using LSDPP ######################################
-    n = 10
-    lsdpp = deserialize("lsdpp.jls") # lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
-    train_inds = sort(sample(lsdpp, n))
-    #Load atomistic configurations
-    train_confs = get_confs(train_path, train_inds)
-    # Compute dataset with energy and force descriptors
-    train_ds = calc_descr(train_confs, basis)
-    # Create result folder
-    curr_sampler = "lsdpp"
-    batch_size_prop = "x.x"
-    exp_path = "$res_path/$j-$curr_sampler-bsp$batch_size_prop/"
-    run(`mkdir -p $exp_path`)
-    # Fit and save results
-    metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
-    metrics_j = merge(OrderedDict("exp_number" => j,
-                                  "method" => "$curr_sampler",
-                                  "batch_size_prop" => batch_size_prop,
-                                  "batch_size" => batch_size,
-                                  "time" => sampling_time),
-                merge(metrics_j...))
-    push!(metrics, metrics_j)
-    @save_dataframe(res_path, metrics)
-    GC.gc()
     
-    # Sample training dataset using SRSLSDPP ###################################
-    n = 10
-    train_inds = sort(rand(1:400000, n))
-    #Load atomistic configurations
-    train_confs = get_confs(train_path, train_inds)
-    # Compute dataset with energy and force descriptors
-    train_ds = calc_descr(train_confs, basis)
-    # Create result folder
-    curr_sampler = "srs"
-    batch_size_prop = "x.x"
-    exp_path = "$res_path/$j-$curr_sampler-bsp$batch_size_prop/"
-    run(`mkdir -p $exp_path`)
-    # Fit and save results
-    metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
-    metrics_j = merge(OrderedDict("exp_number" => j,
-                                  "method" => "$curr_sampler",
-                                  "batch_size_prop" => batch_size_prop,
-                                  "batch_size" => batch_size,
-                                  "time" => sampling_time),
-                merge(metrics_j...))
-    push!(metrics, metrics_j)
-    @save_dataframe(res_path, metrics)
-
+    for n in sample_sizes
+        # Sample training dataset using LSDPP ##################################
+        train_inds = sort(sample(lsdpp, n))
+        #Load atomistic configurations
+        train_confs = get_confs(train_path, train_inds)
+        # Compute dataset with energy and force descriptors
+        train_ds = calc_descr(train_confs, basis)
+        # Create result folder
+        curr_sampler = "lsdpp"
+        exp_path = "$res_path/$j-$curr_sampler-n$n/"
+        run(`mkdir -p $exp_path`)
+        # Fit and save results
+        metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
+        metrics_j = merge(OrderedDict("exp_number" => j,
+                                      "method" => "$curr_sampler",
+                                      "sample_size" => n),
+                    merge(metrics_j...))
+        push!(metrics, metrics_j)
+        @save_dataframe(res_path, metrics)
+        GC.gc()
+        
+        # Sample training dataset using SRS ####################################
+        train_inds = sort(rand(1:400000, n))
+        #Load atomistic configurations
+        train_confs = get_confs(train_path, train_inds)
+        # Compute dataset with energy and force descriptors
+        train_ds = calc_descr(train_confs, basis)
+        # Create result folder
+        curr_sampler = "srs"
+        exp_path = "$res_path/$j-$curr_sampler-n$n/"
+        run(`mkdir -p $exp_path`)
+        # Fit and save results
+        metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
+        metrics_j = merge(OrderedDict("exp_number" => j,
+                                      "method" => "$curr_sampler",
+                                      "sample_size" => n),
+                    merge(metrics_j...))
+        push!(metrics, metrics_j)
+        @save_dataframe(res_path, metrics)
+    end
 end
 
 # Postprocess ##################################################################
