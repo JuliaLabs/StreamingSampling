@@ -14,16 +14,16 @@ basis = ACE(species           = [:C, :O, :H],
             rcutoff           = 4.4 );
 
 # Data
-file_paths = ["data/iso17/my_iso_test_part1.extxyz"]
+path = ["data/iso17/my_iso_test_part1.extxyz"]
 
 # Sample size and dataset size
 n = 6000
-ch = chunk_iterator(file_paths; chunksize=1000)
+ch = chunk_iterator(path; chunksize=1000)
 N = maximum([ maximum(ch.data[i][2]) for i in 1:length(ch.data)])
 
 # Sampling by DPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
-ch = chunk_iterator(file_paths; chunksize=N)
+ch = chunk_iterator(path; chunksize=N)
 chunk, _ = take!(ch)
 features = create_features(chunk)
 D = pairwise(Euclidean(), features')
@@ -38,7 +38,7 @@ GC.gc()
 
 # Sampling by LSDPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
-lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
+lsdpp = LSDPP(path; chunksize=2000, subchunksize=200)
 lsdpp_probs = inclusion_prob(lsdpp, n)
 lsdpp_indexes = sample(lsdpp, n)
 
