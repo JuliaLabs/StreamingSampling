@@ -17,7 +17,7 @@ include("utils/xyz.jl")
 # Define paths and create experiment folder
 train_path = ["data/iso17/my_iso17_train.extxyz"]
 test_path = ["data/iso17/my_iso17_test.extxyz"]
-res_path  = "results-full-hfo2/"
+res_path  = "results-full-iso17/"
 run(`mkdir -p $res_path`)
 
 # Helper functions
