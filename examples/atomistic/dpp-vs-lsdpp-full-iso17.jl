@@ -57,7 +57,7 @@ end
 # Define basis
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 5, #16,
+            polynomial_degree = 16,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
@@ -78,11 +78,13 @@ metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 n_experiments = 1
 
 # Define batch sample sizes
-sample_sizes = [1000, 3000, 5000]
+sample_sizes = [1000, 10_000, 30_000, 50_000]
 
 # Setup LSDPP
 lsdpp = deserialize("lsdpp.jls") # lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
 
+# Test dataset size
+m = 50_000
 
 # Run experiments
 for j in 1:n_experiments
@@ -91,7 +93,7 @@ for j in 1:n_experiments
     global metrics
 
     # Create test set
-    ch = chunk_iterator(test_path; chunksize=1000, buffersize=1, randomized=true)
+    ch = chunk_iterator(test_path; chunksize=m, buffersize=1, randomized=true)
     _, test_inds = take!(ch)
     close(ch)
     test_inds = sort(test_inds)
