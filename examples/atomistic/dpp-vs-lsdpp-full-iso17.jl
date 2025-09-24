@@ -64,7 +64,7 @@ basis = ACE(species           = [:C, :O, :H],
             rcutoff           = 4.4 );
 
 # Create metric dataframe
-metric_names = [:exp_number,  :method, :sample_size, 
+metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
                 :e_train_mae, :e_train_rmse, :e_train_rsq,
                 :f_train_mae, :f_train_rmse, :f_train_rsq, :f_train_mean_cos,
                 :e_test_mae,  :e_test_rmse,  :e_test_rsq, 
@@ -75,13 +75,14 @@ metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 # Sampling experiments #########################################################
 
 # Define number of experiments
-n_experiments = 1
+n_experiments = 20
 
 # Define batch sample sizes
 sample_sizes = [1000]
 
 # Setup LSDPP
 lsdpp = deserialize("lsdpp.jls") # lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
+
 
 # Run experiments
 for j in 1:n_experiments
@@ -90,7 +91,10 @@ for j in 1:n_experiments
     global metrics
 
     # Create test set
-    test_inds = sort(rand(1:130000, 1000))
+    ch = chunk_iterator(test_path; chunksize=1000, buffersize=1, randomized=true)
+    _, test_inds = take!(ch)
+    close(ch)
+    test_inds = sort(test_inds)
     test_confs = get_confs(test_path, test_inds)
     test_ds = calc_descr(test_confs, basis)
     
@@ -109,14 +113,20 @@ for j in 1:n_experiments
         metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
-                                      "sample_size" => n),
+                                      "batch_size_prop" => 0.0,
+                                      "batch_size" => n,
+                                      "time" => 0.0),
                     merge(metrics_j...))
         push!(metrics, metrics_j)
         @save_dataframe(res_path, metrics)
         GC.gc()
         
         # Sample training dataset using SRS ####################################
-        train_inds = sort(rand(1:400000, n))
+        ch = chunk_iterator(test_path; chunksize=n, buffersize=1, randomized=true)
+        _, train_inds = take!(ch)
+        close(ch)
+        train_inds = sort(train_inds)
+        
         #Load atomistic configurations
         train_confs = get_confs(train_path, train_inds)
         # Compute dataset with energy and force descriptors
@@ -129,10 +139,13 @@ for j in 1:n_experiments
         metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
-                                      "sample_size" => n),
+                                      "batch_size_prop" => 0.0,
+                                      "batch_size" => n,
+                                      "time" => 0.0),
                     merge(metrics_j...))
         push!(metrics, metrics_j)
         @save_dataframe(res_path, metrics)
+        GC.gc()
     end
 end
 
