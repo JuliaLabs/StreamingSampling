@@ -20,6 +20,7 @@ function plotmetrics(res_path, metrics_filename)
                      "Time | s"]
     for (i, metric) in enumerate(metrics_cols)
         plot()
+        metric_max = 0.0
         for (j, method) in enumerate(methods)
             metric_means = []; metric_se = []
             metric_q3 = []; metric_q2 = []; metric_q1 = []
@@ -38,6 +39,8 @@ function plotmetrics(res_path, metrics_filename)
                 push!(metric_q3, qs[3])
                 push!(metric_q2, qs[2])
                 push!(metric_q1, qs[1])
+                
+                metric_max = maximum([metric_max, maximum(metric_q3)])
             end
             plot!(batch_sizes,
                 metric_q2,
@@ -58,11 +61,11 @@ function plotmetrics(res_path, metrics_filename)
                 markerstrokecolor = :black, 
                 markercolor = colors[j],
                 label="")
-            max = metric == :time ? 1 : 1.0 # maximum(metric_q2)
-            min = metric == :time ? -0.1 : minimum(metric_q2) * 0.50
+            max = metric == :time ? 1 : metric_max*1.1 # 1.0
+            min = metric == :time ? -0.1 : minimum(metric_q2)*0.5
             plot!(dpi = 300,
                 label = "",
-                xscale=:log2,
+                #xscale=:log2,
                 #yscale=:log10,
                 xticks = (batch_sizes, xticks_label),
                 ylim=(min, max),
