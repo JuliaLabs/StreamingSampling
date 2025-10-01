@@ -81,7 +81,9 @@ n_experiments = 1
 sample_sizes = [1_000, 5_000, 10_000]
 
 # Setup LSDPP
-lsdpp = deserialize("lsdpp.jls") # lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
+lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
+#lsdpp = deserialize("lsdpp.jls") 
+serialize(lsdpp, "lsdpp.jls") 
 
 # Test dataset size
 m = 10_000

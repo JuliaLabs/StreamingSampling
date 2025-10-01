@@ -61,6 +61,8 @@ function plotmetrics(res_path, metrics_filename)
                 markerstrokecolor = :black, 
                 markercolor = colors[j],
                 label="")
+            plot!(batch_sizes, [0.1 for _ in 1:length(batch_sizes)]; 
+                  color=:red, linestyle=:dot, label=false)
             max = metric == :time ? 1 : metric_max*1.1 # 1.0
             min = metric == :time ? -0.1 : minimum(metric_q2)*0.5
             plot!(dpi = 300,
