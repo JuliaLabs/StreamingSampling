@@ -86,6 +86,9 @@ lsdpp = deserialize("lsdpp.jls") # lsdpp = LSDPP(train_path; chunksize=2000, sub
 # Test dataset size
 m = 10_000
 
+# Training dataset size
+N = 504_999
+
 # Run experiments
 for j in 1:n_experiments
     println("Experiment $j")
@@ -141,7 +144,7 @@ for j in 1:n_experiments
         metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
-                                      "batch_size_prop" => 0.0,
+                                      "batch_size_prop" => n/N,
                                       "batch_size" => n,
                                       "time" => 0.0),
                     merge(metrics_j...))
