@@ -12,7 +12,8 @@ function chunk_iterator(file_paths::Vector{String}; chunksize=100,
 end
 
 function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=100, buffersize=32)
-    return Channel{Tuple{Vector,Vector{Int}}}(buffersize) do ch
+    N = 0
+    ch = Channel{Tuple{Vector,Vector{Int}}}(buffersize) do ch
         # First pass to know file positions
         file_numbers = []
         elem_positions = []
@@ -22,6 +23,7 @@ function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=100, buffersiz
                     push!(file_numbers, i)
                     push!(elem_positions, position(io))
                     element = read_element(io)
+                    N += 1
                 end
             end
         end
@@ -54,10 +56,22 @@ function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=100, buffersiz
             put!(ch, (current_chunk, current_chunk_indices))
         end
     end
+    return ch, N
 end
 
 function chunk_iterator_seq(file_paths::Vector{String}; chunksize=100, buffersize=32)
-    return Channel{Tuple{Vector,Vector{Int}}}(buffersize) do ch
+    # First pass to know dataset size
+    N = 0
+    for (i,filepath) in enumerate(file_paths)
+        open(filepath, "r") do io
+            while !eof(io)
+                read_element(io)
+                N += 1
+            end
+        end
+    end
+    # Channel definition
+    ch = Channel{Tuple{Vector,Vector{Int}}}(buffersize) do ch
         global_counter = 1
         current_chunk = []
         current_chunk_indices = Int[]
@@ -80,13 +94,14 @@ function chunk_iterator_seq(file_paths::Vector{String}; chunksize=100, buffersiz
             put!(ch, (current_chunk, current_chunk_indices))
         end
     end
+    return ch, N
 end
 
 function chunk_iterator(A::Matrix; chunksize=100, buffersize=32, randomized=true)
     N = size(A, 1)
     inds = randomized ? randperm(N) : collect(1:N)
     n_chunks = ceil(Int, N / chunksize)
-    return Channel{Tuple{Matrix,Vector{Int}}}(buffersize) do ch
+    ch = Channel{Tuple{Matrix,Vector{Int}}}(buffersize) do ch
         for i in 1:n_chunks
             start_idx = (i - 1) * chunksize + 1
             end_idx = min(i * chunksize, N)
@@ -95,4 +110,5 @@ function chunk_iterator(A::Matrix; chunksize=100, buffersize=32, randomized=true
             put!(ch, (curr_chunk, curr_chunk_inds))
         end
     end
+    return ch, N
 end

@@ -23,7 +23,7 @@ run(`mkdir -p $res_path`)
 # Helper functions
 function get_confs(path, inds)
     confs = []
-    ch = chunk_iterator(path; chunksize=1000, randomized=false)
+    ch, N = chunk_iterator(train_path; chunksize=1000, randomized=false)
     k = 1
     for (c, ci) in ch
         j = 1
@@ -54,6 +54,29 @@ function calc_descr(confs, basis)
     return ds
 end
 
+# Sampling experiments #########################################################
+
+# Define number of experiments
+n_experiments = 1
+
+# Define batch sample sizes
+sample_sizes = [1_000, 5_000, 10_000]
+
+# Test dataset size
+m = 10_000
+
+# Setup LSDPP
+basis = ACE(species           = [:C, :O, :H],
+            body_order        = 4,
+            polynomial_degree = 6,
+            wL                = 2.0,
+            csp               = 1.0,
+            r0                = 1.43,
+            rcutoff           = 4.4 );
+lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
+#lsdpp = deserialize("lsdpp.jls") 
+#serialize(lsdpp, "lsdpp.jls") 
+
 # Define basis
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
@@ -71,26 +94,6 @@ metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
                 :f_test_mae,  :f_test_rmse,  :f_test_rsq,  :f_test_mean_cos]
 metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 
-
-# Sampling experiments #########################################################
-
-# Define number of experiments
-n_experiments = 1
-
-# Define batch sample sizes
-sample_sizes = [1_000, 5_000, 10_000]
-
-# Setup LSDPP
-lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
-#lsdpp = deserialize("lsdpp.jls") 
-serialize(lsdpp, "lsdpp.jls") 
-
-# Test dataset size
-m = 10_000
-
-# Training dataset size
-N = 504_999
-
 # Run experiments
 for j in 1:n_experiments
     println("Experiment $j")
@@ -98,7 +101,7 @@ for j in 1:n_experiments
     global metrics
 
     # Create test set
-    ch = chunk_iterator(test_path; chunksize=m, buffersize=1, randomized=true)
+    ch, _ = chunk_iterator(test_path; chunksize=m, buffersize=1, randomized=true)
     _, test_inds = take!(ch)
     close(ch)
     test_inds = sort(test_inds)
@@ -120,7 +123,7 @@ for j in 1:n_experiments
         metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
-                                      "batch_size_prop" => 0.0,
+                                      "batch_size_prop" => n/N,
                                       "batch_size" => n,
                                       "time" => 0.0),
                     merge(metrics_j...))
@@ -129,7 +132,7 @@ for j in 1:n_experiments
         GC.gc()
         
         # Sample training dataset using SRS ####################################
-        ch = chunk_iterator(test_path; chunksize=n, buffersize=1, randomized=true)
+        ch, N = chunk_iterator(test_path; chunksize=n, buffersize=1, randomized=true)
         _, train_inds = take!(ch)
         close(ch)
         train_inds = sort(train_inds)

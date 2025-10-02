@@ -38,14 +38,12 @@ file_paths = ["$path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
             "$path/Hf_mp8640_EOS_ibrav_convex_hull_form_sorted.extxyz"]
 
 
-# Sample size and dataset size
+# Sample size
 n = 200
-ch = chunk_iterator(file_paths; chunksize=1000)
-N = maximum([ maximum(ch.data[i][2]) for i in 1:length(ch.data)]) # 4378
 
 # Sampling by DPP
 Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
-ch = chunk_iterator(file_paths; chunksize=N, randomized=false)
+ch, N = chunk_iterator(file_paths; chunksize=N, randomized=false)
 chunk, _ = take!(ch)
 features = create_features(chunk)
 D = pairwise(Euclidean(), features')

@@ -3,16 +3,22 @@
 function compute_weights(sampler::Sampler, file_paths::Vector{String};
                          chunksize=1000, subchunksize=100, buffersize=32,
                          max=Inf, randomized=true)
-    ch = chunk_iterator(file_paths; chunksize=subchunksize, 
+    ch, N = chunk_iterator(file_paths; chunksize=subchunksize, 
                         buffersize=buffersize, randomized=randomized)
+    if max == Inf
+        max = N
+    end
     return compute_weights(sampler, ch; chunksize=chunksize,
                            subchunksize=subchunksize, max=max)
 end
 
 function compute_weights(sampler::Sampler, A::Matrix; chunksize=1000,
                          subchunksize=100, buffersize=32, max=Inf, randomized=true)
-    ch = chunk_iterator(A; chunksize=subchunksize, buffersize=buffersize,
+    ch, N = chunk_iterator(A; chunksize=subchunksize, buffersize=buffersize,
                         randomized=randomized)
+    if max == Inf
+        max = N
+    end
     return compute_weights(sampler, ch; chunksize=chunksize,
                            subchunksize=subchunksize, max=max)
 end
@@ -38,10 +44,7 @@ function compute_weights(sampler::Sampler, ch::Channel;
     ws = compute_weights(sampler, fs)
     min = minimum(ws)
     # Allocate global weights
-    if max == Inf
-        max = maximum([ maximum(ch.data[i][2]) for i in 1:length(ch.data)])
-    end
-    gws = fill(-1.0, max) # error if max is Inf, 
+    gws = fill(-1.0, max)
     gws[ginds] .= ws
     # Advance number of processed elements
     nelems = length(ginds)

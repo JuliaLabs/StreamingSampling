@@ -7,7 +7,7 @@ include("utils/atom-conf-features-extxyz.jl")
 # Basis function to compute ACE descriptors (features)
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 16,
+            polynomial_degree = 6,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
@@ -16,14 +16,12 @@ basis = ACE(species           = [:C, :O, :H],
 # Data
 path = ["data/iso17/my_iso_test_part1.extxyz"]
 
-# Sample size and dataset size
+# Sample size
 n = 6000
-ch = chunk_iterator(path; chunksize=1000)
-N = maximum([ maximum(ch.data[i][2]) for i in 1:length(ch.data)])
 
 # Sampling by DPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
-ch = chunk_iterator(path; chunksize=N)
+ch, N = chunk_iterator(path; chunksize=N)
 chunk, _ = take!(ch)
 features = create_features(chunk)
 D = pairwise(Euclidean(), features')
