@@ -20,10 +20,9 @@ path = ["data/iso17/my_iso_test_part1.extxyz"]
 n = 6000
 
 # Sampling by DPP
-Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
-ch, N = chunk_iterator(path; chunksize=N)
-chunk, _ = take!(ch)
-features = create_features(chunk)
+ch, N = chunk_iterator(path; chunksize=1000, randomized=false)
+structs = vcat([first(c) for c in ch]...)
+features = create_features(structs)
 D = pairwise(Euclidean(), features')
 K = exp.(-D.^2)
 dpp = EllEnsemble(K)
@@ -36,7 +35,7 @@ GC.gc()
 
 # Sampling by LSDPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
-lsdpp = LSDPP(path; chunksize=2000, subchunksize=200)
+lsdpp = LSDPP(path; chunksize=1000, subchunksize=200)
 lsdpp_probs = inclusion_prob(lsdpp, n)
 lsdpp_indexes = sample(lsdpp, n)
 

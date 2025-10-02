@@ -37,15 +37,14 @@ file_paths = ["$path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
             #"$path/Hf_mp103_EOS_ibrav_convex_hull_form_sorted.extxyz",
             "$path/Hf_mp8640_EOS_ibrav_convex_hull_form_sorted.extxyz"]
 
-
 # Sample size
 n = 200
 
 # Sampling by DPP
 Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
-ch, N = chunk_iterator(file_paths; chunksize=N, randomized=false)
-chunk, _ = take!(ch)
-features = create_features(chunk)
+ch, N = chunk_iterator(file_paths; chunksize=1000, randomized=false)
+structs = vcat([first(c) for c in ch]...)
+features = create_features(structs)
 D = pairwise(Euclidean(), features')
 K = exp.(-D.^2)
 dpp = EllEnsemble(K)
@@ -58,7 +57,7 @@ GC.gc()
 
 # Sampling by LSDPP
 Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
-lsdpp = LSDPP(file_paths; chunksize=2000, subchunksize=200, max=N)
+lsdpp = LSDPP(file_paths; chunksize=1000, subchunksize=200, max=N)
 lsdpp_probs = inclusion_prob(lsdpp, n)
 lsdpp_indexes = sample(lsdpp, n)
 
@@ -71,7 +70,7 @@ plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
 plot!(ylabel="LSDPP inclusion probabilities")
 plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-probs-hf.png")
+savefig("dpp-probs-vs-lsdpp-probs-hf-1.png")
 
 plot(dpp_probs, color="red", alpha=0.5, label="DPP inclusion probabilities")
 plot!(lsdpp_probs, color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
