@@ -4,7 +4,7 @@ function compute_weights(sampler::Sampler, file_paths::Vector{String};
                          chunksize=1000, subchunksize=100, buffersize=32,
                          max=Inf, randomized=true)
     ch, N = chunk_iterator(file_paths; chunksize=subchunksize, 
-                        buffersize=buffersize, randomized=randomized)
+                           buffersize=buffersize, randomized=randomized)
     if max == Inf
         max = N
     end
@@ -12,10 +12,10 @@ function compute_weights(sampler::Sampler, file_paths::Vector{String};
                            subchunksize=subchunksize, max=max)
 end
 
-function compute_weights(sampler::Sampler, A::Matrix; chunksize=1000,
+function compute_weights(sampler::Sampler, A::Vector; chunksize=1000,
                          subchunksize=100, buffersize=32, max=Inf, randomized=true)
     ch, N = chunk_iterator(A; chunksize=subchunksize, buffersize=buffersize,
-                        randomized=randomized)
+                           randomized=randomized)
     if max == Inf
         max = N
     end

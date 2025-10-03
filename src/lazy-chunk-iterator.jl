@@ -97,16 +97,16 @@ function chunk_iterator_seq(file_paths::Vector{String}; chunksize=100, buffersiz
     return ch, N
 end
 
-function chunk_iterator(A::Matrix; chunksize=100, buffersize=32, randomized=true)
-    N = size(A, 1)
+function chunk_iterator(A::Vector; chunksize=100, buffersize=32, randomized=true)
+    N = length(A)
     inds = randomized ? randperm(N) : collect(1:N)
     n_chunks = ceil(Int, N / chunksize)
-    ch = Channel{Tuple{Matrix,Vector{Int}}}(buffersize) do ch
+    ch = Channel{Tuple{Vector,Vector{Int}}}(buffersize) do ch
         for i in 1:n_chunks
             start_idx = (i - 1) * chunksize + 1
             end_idx = min(i * chunksize, N)
             curr_chunk_inds = inds[start_idx:end_idx]
-            @views curr_chunk = A[curr_chunk_inds, :]
+            @views curr_chunk = A[curr_chunk_inds]
             put!(ch, (curr_chunk, curr_chunk_inds))
         end
     end

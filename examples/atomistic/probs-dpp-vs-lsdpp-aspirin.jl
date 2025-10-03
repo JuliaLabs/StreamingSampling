@@ -16,27 +16,26 @@ basis = ACE(species           = [:C, :O, :H],
 # Data
 file_paths = ["data/aspirin/aspirin.xyz"]
 
-# Sample size
+# Sample size and dataset size (the dataset is a sample of the full dataset)
 n = 200
+m = 5000
+
+# Compute features
+ch, N = chunk_iterator(file_paths; chunksize=m)
+structs = first(take!(ch))
+close(ch); GC.gc()
+features = create_features(structs)
 
 # Sampling by DPP
-Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
-ch, N = chunk_iterator(file_paths; chunksize=1000, randomized=false)
-structs = vcat([first(c) for c in ch]...)
-features = create_features(structs)
 D = pairwise(Euclidean(), features')
 K = exp.(-D.^2)
 dpp = EllEnsemble(K)
 rescale!(dpp, n)
 dpp_probs = Determinantal.inclusion_prob(dpp)
 dpp_indexes = Determinantal.sample(dpp, n)
-chunk = nothing;
-features = nothing;
-GC.gc()
 
 # Sampling by LSDPP
-Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
-lsdpp = LSDPP(file_paths; chunksize=1000, subchunksize=200, max=N)
+lsdpp = LSDPP(structs; chunksize=2000, subchunksize=200, randomized=false)
 lsdpp_probs = inclusion_prob(lsdpp, n)
 lsdpp_indexes = sample(lsdpp, n)
 
@@ -60,12 +59,12 @@ inds = sortperm(dpp_probs)
 plot(dpp_probs[inds], color="red", alpha=0.5, label="DPP inclusion probabilities")
 plot!(lsdpp_probs[inds], color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
 plot!(xlabel="Structure sorted by DPP probabilities", ylabel="Probability", legend=:bottomright)
-savefig("dpp-probs-vs-lsdpp-probs-aspirin-3.png")
+savefig("dpp-probs-vs-lsdpp-probs-aspirin-sorted.png")
 
 plot(cumsum(dpp_probs), color="red", alpha=0.5, label="DPP inclusion probabilities")
 plot!(cumsum(lsdpp_probs), color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
 plot!(xlabel="Structure", ylabel="Probability", legend=:bottomright)
-savefig("dpp-probs-vs-lsdpp-probs-aspirin-4.png")
+savefig("dpp-probs-vs-lsdpp-probs-aspirin-cumsum.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
 # sampling n points from a set of size N, with each point of size M
@@ -80,7 +79,7 @@ savefig("dpp-probs-vs-lsdpp-freqs-aspirin.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 
 # random points, when sampling n points from a set of size N, with each point of size M
-set = rand(1:N, 2)
+set = rand(1:m, 2)
 iterations = 100_000
 lsdpp_set_freqs = relative_frequencies(lsdpp, set, n, iterations)
 dpp_set_freqs = det(marginal_kernel(dpp)[set, set])

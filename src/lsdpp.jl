@@ -15,7 +15,7 @@ mutable struct LSDPP <: Sampler
         return lsdpp
     end
     
-    function LSDPP(A::Matrix; chunksize=1000, subchunksize=100, buffersize=32,
+    function LSDPP(A::Vector; chunksize=1000, subchunksize=100, buffersize=32,
                    max=Inf, randomized=true)
         lsdpp = new(Vector{Float64}(), chunksize, subchunksize)
         lsdpp.weights = compute_weights(lsdpp, A; chunksize=chunksize,
