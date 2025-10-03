@@ -15,6 +15,8 @@ basis = ACE(species           = [:C, :O, :H],
 
 # Data
 file_paths = ["data/aspirin/aspirin.xyz"]
+res_path  = "results-probs-aspirin/"
+run(`mkdir -p $res_path`)
 
 # Sample size and dataset size (the dataset is a sample of the full dataset)
 n = 200
@@ -48,23 +50,23 @@ plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
 plot!(ylabel="LSDPP inclusion probabilities")
 plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-probs-aspirin-1.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-probs-aspirin-1.png")
 
 plot(dpp_probs, color="red", alpha=0.5, label="DPP inclusion probabilities")
 plot!(lsdpp_probs, color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
 plot!(xlabel="Structures", ylabel="Probability", legend=:bottomright)
-savefig("dpp-probs-vs-lsdpp-probs-aspirin-2.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-probs-aspirin-2.png")
 
 inds = sortperm(dpp_probs)
 plot(dpp_probs[inds], color="red", alpha=0.5, label="DPP inclusion probabilities")
 plot!(lsdpp_probs[inds], color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
 plot!(xlabel="Structure sorted by DPP probabilities", ylabel="Probability", legend=:bottomright)
-savefig("dpp-probs-vs-lsdpp-probs-aspirin-sorted.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-probs-aspirin-sorted.png")
 
 plot(cumsum(dpp_probs), color="red", alpha=0.5, label="DPP inclusion probabilities")
 plot!(cumsum(lsdpp_probs), color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
 plot!(xlabel="Structure", ylabel="Probability", legend=:bottomright)
-savefig("dpp-probs-vs-lsdpp-probs-aspirin-cumsum.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-probs-aspirin-cumsum.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
 # sampling n points from a set of size N, with each point of size M
@@ -75,7 +77,7 @@ plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
 plot!(ylabel="LSDPP inclusion frequencies")
 plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-freqs-aspirin.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-freqs-aspirin.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 
 # random points, when sampling n points from a set of size N, with each point of size M

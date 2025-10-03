@@ -36,6 +36,8 @@ file_paths = ["$path/Hf128_MC_rattled_mp100_form_sorted.extxyz",
             "$path/Hf.mp103.0GPa.293K.phonons.form_sorted.extxyz",
             "$path/Hf_mp103_EOS_ibrav_convex_hull_form_sorted.extxyz",
             "$path/Hf_mp8640_EOS_ibrav_convex_hull_form_sorted.extxyz"]
+res_path  = "results-probs-hf/"
+run(`mkdir -p $res_path`)
 
 # Sample size and dataset size (the dataset is a sample of the full dataset)
 n = 200
@@ -69,23 +71,23 @@ plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
 plot!(ylabel="LSDPP inclusion probabilities")
 plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-probs-hf-1.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-probs-hf-1.png")
 
 plot(dpp_probs, color="red", alpha=0.5, label="DPP inclusion probabilities")
 plot!(lsdpp_probs, color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
 plot!(xlabel="Structures", ylabel="Probability", legend=:bottomright)
-savefig("dpp-probs-vs-lsdpp-probs-hf-2.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-probs-hf-2.png")
 
 inds = sortperm(dpp_probs)
 plot(dpp_probs[inds], color="red", alpha=0.5, label="DPP inclusion probabilities")
 plot!(lsdpp_probs[inds], color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
 plot!(xlabel="Structure sorted by DPP probabilities", ylabel="Probability", legend=:bottomright)
-savefig("dpp-probs-vs-lsdpp-probs-hf-sorted.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-probs-hf-sorted.png")
 
 plot(cumsum(dpp_probs), color="red", alpha=0.5, label="DPP inclusion probabilities")
 plot!(cumsum(lsdpp_probs), color="blue", alpha=0.5, label="LSDPP inclusion probabilities")
 plot!(xlabel="Structure", ylabel="Probability", legend=:bottomright)
-savefig("dpp-probs-vs-lsdpp-probs-hf-cumsum.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-probs-hf-cumsum.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
 # sampling n points from a set of size N, with each point of size M
@@ -96,7 +98,7 @@ plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
 plot!(ylabel="LSDPP inclusion frequencies")
 plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-freqs-hf.png")
+savefig("$res_path/dpp-probs-vs-lsdpp-freqs-hf.png")
 
 # DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 
 # random points, when sampling n points from a set of size N, with each point of size M
