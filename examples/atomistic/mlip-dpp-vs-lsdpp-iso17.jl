@@ -1,6 +1,7 @@
 using PotentialLearning
 using OrderedCollections
 using Serialization
+using Libc
 
 # LSSampling
 include("../../src/lssampling.jl")
@@ -75,7 +76,11 @@ basis = ACE(species           = [:C, :O, :H],
             rcutoff           = 4.4 );
 lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
 #lsdpp = deserialize("lsdpp.jls") 
-#serialize(lsdpp, "lsdpp.jls") 
+open("lsdpp.jls", "w") do io
+    serialize(io, lsdpp)
+    flush(io)
+    Libc.fsync(fd(io))
+end
 
 # Define basis
 basis = ACE(species           = [:C, :O, :H],
