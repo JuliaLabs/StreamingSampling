@@ -1,7 +1,6 @@
 using PotentialLearning
 using OrderedCollections
 using Serialization
-using Libc
 
 # LSSampling
 include("../../src/lssampling.jl")
