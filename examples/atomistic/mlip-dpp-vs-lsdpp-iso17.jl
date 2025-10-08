@@ -1,6 +1,7 @@
 using PotentialLearning
 using OrderedCollections
 using Serialization
+using Random
 
 # LSSampling
 include("../../src/lssampling.jl")
@@ -139,10 +140,7 @@ for j in 1:n_experiments
         GC.gc()
         
         # Sample training dataset using SRS ####################################
-        ch, N = chunk_iterator(test_path; chunksize=n, buffersize=1, randomized=true)
-        _, train_inds = take!(ch)
-        close(ch)
-        train_inds = sort(train_inds)
+        train_inds = randperm(N)[1:n]
         
         #Load atomistic configurations
         train_confs = get_confs(train_path, train_inds)
