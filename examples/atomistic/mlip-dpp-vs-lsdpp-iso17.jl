@@ -56,15 +56,6 @@ end
 
 # Sampling experiments #########################################################
 
-# Define number of experiments
-n_experiments = 1
-
-# Define batch sample sizes
-sample_sizes = [1_000, 5_000, 10_000]
-
-# Test dataset size
-m = 10_000
-
 # Setup LSDPP
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
@@ -74,14 +65,26 @@ basis = ACE(species           = [:C, :O, :H],
             r0                = 1.43,
             rcutoff           = 4.4 );
 lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
-#lsdpp = deserialize("lsdpp.jls") 
 open("lsdpp.jls", "w") do io
     serialize(io, lsdpp)
     flush(io)
     Libc.fsync(fd(io))
 end
+#lsdpp = deserialize("lsdpp.jls")
 
-# Define basis
+# Define number of experiments
+n_experiments = 1
+
+# Define batch sample sizes
+sample_sizes = [1_000, 5_000, 10_000]
+
+# Test dataset size
+m = 10_000
+
+# Full dataset size
+N = length(lsdpp.weights)
+
+# Define training basis
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
             polynomial_degree = 16,
