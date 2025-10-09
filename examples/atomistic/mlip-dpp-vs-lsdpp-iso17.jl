@@ -1,7 +1,6 @@
 using PotentialLearning
 using OrderedCollections
 using Serialization
-using Random
 
 # LSSampling
 include("../../src/lssampling.jl")
@@ -69,7 +68,6 @@ lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
 open("lsdpp.jls", "w") do io
     serialize(io, lsdpp)
     flush(io)
-    Libc.fsync(fd(io))
 end
 #lsdpp = deserialize("lsdpp.jls")
 
@@ -115,6 +113,11 @@ for j in 1:n_experiments
     test_inds = sort(test_inds)
     test_confs = get_confs(test_path, test_inds)
     test_ds = calc_descr(test_confs, basis)
+    open("test_ds.jls", "w") do io
+     serialize(io, test_ds)
+     flush(io)
+    end
+    #test_ds = deserialize("test_ds.jls")
     
     for n in sample_sizes
         # Sample training dataset using LSDPP ##################################
