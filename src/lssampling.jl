@@ -34,5 +34,6 @@ include("approx-weights.jl")
 include("inclu-probs-rel-freqs.jl")
 
 # Sampling
+include("UPmaxentropy/UPmaxentropy.jl")
 include("sampling.jl")
 
