@@ -100,6 +100,28 @@ metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
                 :f_test_mae,  :f_test_rmse,  :f_test_rsq,  :f_test_mean_cos]
 metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 
+# Compute reference energies
+s = 0.0
+ch, n1 = chunk_iterator(train_path; chunksize=10_000, buffersize=1, randomized=true)
+c, _ = take!(ch)
+close(ch)
+for cj in c
+    energy = cj[2]
+    s += energy
+end
+ch, n2 = chunk_iterator(test_path; chunksize=10_000, buffersize=1, randomized=true)
+c, _ = take!(ch)
+close(ch)
+for cj in c
+    energy = cj[2]
+    s += energy
+end
+na = length(c[1][1]) # all conf. have the same no. of atoms
+avg_energy_per_atom = s/(n1+n2)/na
+vref_dict = Dict(:H => avg_energy_per_atom,
+                 :C => avg_energy_per_atom,
+                 :O => avg_energy_per_atom)
+
 # Run experiments
 for j in 1:n_experiments
     println("Experiment $j")
@@ -118,12 +140,16 @@ for j in 1:n_experiments
      flush(io)
     end
     #test_ds = deserialize("test_ds.jls")
+    #Adjust reference energies (permanent change)
+    adjust_energies(test_confs,vref_dict)
     
     for n in sample_sizes
         # Sample training dataset using LSDPP ##################################
         train_inds = sort(sample(lsdpp, n))
         #Load atomistic configurations
         train_confs = get_confs(train_path, train_inds)
+        #Adjust reference energies (permanent change)
+        adjust_energies(train_confs,vref_dict)
         # Compute dataset with energy and force descriptors
         train_ds = calc_descr(train_confs, basis)
         # Create result folder
@@ -131,7 +157,7 @@ for j in 1:n_experiments
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results
-        metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
+        metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=vref_dict)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
                                       "batch_size_prop" => n/N,
@@ -154,7 +180,7 @@ for j in 1:n_experiments
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results
-        metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=nothing)
+        metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=vref_dict)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
                                       "batch_size_prop" => n/N,
@@ -168,5 +194,5 @@ for j in 1:n_experiments
 end
 
 # Postprocess ##################################################################
-plotmetrics(res_path, "metrics.csv")
+plotmetrics2(res_path, "metrics.csv")
 

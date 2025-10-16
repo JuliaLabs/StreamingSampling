@@ -10,7 +10,7 @@ function plotmetrics(res_path, metrics_filename)
 
     batch_sizes = unique(metrics.batch_size)
     batch_size_prop = unique(metrics.batch_size_prop)
-    xticks_label = ("$b\n$(p*100)%" for (b, p) in zip(batch_sizes, batch_size_prop))
+    xticks_label = ("$b\n$(round(p*100, digits=3))%" for (b, p) in zip(batch_sizes, batch_size_prop))
     colors = palette(:tab10)
     metrics_cols = [:e_train_mae, :f_train_mae, :e_test_mae, :f_test_mae, :time]
     metric_labels = ["E MAE | eV/atom",
@@ -64,11 +64,11 @@ function plotmetrics(res_path, metrics_filename)
             #plot!(batch_sizes, [0.1 for _ in 1:length(batch_sizes)]; 
             #      color=:red, linestyle=:dot, label=false)
             max = metric == :time ? 1 : metric_max*1.1 # 1.0
-            min = metric == :time ? -0.1 : minimum(metric_q2)*0.5
+            min = metric == :time ? -0.1 : 0.001 #minimum(metric_q2)*0.5
             plot!(dpi = 300,
                 label = "",
                 #xscale=:log2,
-                #yscale=:log10,
+                #yscale=:log2,
                 xticks = (batch_sizes, xticks_label),
                 ylim=(min, max),
                 xlabel = "Training Dataset Size (Sample Size)",
