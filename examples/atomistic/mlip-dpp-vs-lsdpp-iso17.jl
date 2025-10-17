@@ -106,6 +106,7 @@ ch, n1 = chunk_iterator(train_path; chunksize=10_000, buffersize=1, randomized=t
 c, _ = take!(ch)
 close(ch)
 for cj in c
+    global s
     energy = cj[2]
     s += energy
 end
@@ -113,6 +114,7 @@ ch, n2 = chunk_iterator(test_path; chunksize=10_000, buffersize=1, randomized=tr
 c, _ = take!(ch)
 close(ch)
 for cj in c
+    global s
     energy = cj[2]
     s += energy
 end
@@ -127,6 +129,7 @@ for j in 1:n_experiments
     println("Experiment $j")
 
     global metrics
+    local ch 
 
     # Create test set
     ch, _ = chunk_iterator(test_path; chunksize=m, buffersize=1, randomized=true)
