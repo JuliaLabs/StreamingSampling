@@ -83,14 +83,14 @@ m = 10_000
 # Full dataset size
 N = length(lsdpp.weights)
 
-# Define training basis
-basis = ACE(species           = [:C, :O, :H],
-            body_order        = 4,
-            polynomial_degree = 16,
-            wL                = 2.0,
-            csp               = 1.0,
-            r0                = 1.43,
-            rcutoff           = 4.4 );
+# Define basis for fitting
+basis_fitting = ACE(species           = [:C, :O, :H],
+                    body_order        = 4,
+                    polynomial_degree = 16,
+                    wL                = 2.0,
+                    csp               = 1.0,
+                    r0                = 1.43,
+                    rcutoff           = 4.4 );
 
 # Create metric dataframe
 metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
@@ -102,15 +102,8 @@ metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 
 # Compute reference energies
 s = 0.0
-ch, n1 = chunk_iterator(train_path; chunksize=10_000, buffersize=1, randomized=true)
-c, _ = take!(ch)
-close(ch)
-for cj in c
-    global s
-    energy = cj[2]
-    s += energy
-end
-ch, n2 = chunk_iterator(test_path; chunksize=10_000, buffersize=1, randomized=true)
+n1 = 10_000
+ch, _ = chunk_iterator(train_path; chunksize=n1, buffersize=1, randomized=true)
 c, _ = take!(ch)
 close(ch)
 for cj in c
@@ -119,7 +112,7 @@ for cj in c
     s += energy
 end
 na = length(c[1][1]) # all conf. have the same no. of atoms
-avg_energy_per_atom = s/(n1+n2)/na
+avg_energy_per_atom = s/n1/na
 vref_dict = Dict(:H => avg_energy_per_atom,
                  :C => avg_energy_per_atom,
                  :O => avg_energy_per_atom)
@@ -137,14 +130,12 @@ for j in 1:n_experiments
     close(ch)
     test_inds = sort(test_inds)
     test_confs = get_confs(test_path, test_inds)
-    test_ds = calc_descr(test_confs, basis)
+    test_ds = calc_descr(test_confs, basis_fitting)
     open("test_ds.jls", "w") do io
      serialize(io, test_ds)
      flush(io)
     end
-    #test_ds = deserialize("test_ds.jls")
-    #Adjust reference energies (permanent change)
-    adjust_energies(test_confs,vref_dict)
+    #test_ds = deserialize("test_ds_.jls")
     
     for n in sample_sizes
         # Sample training dataset using LSDPP ##################################
@@ -154,13 +145,13 @@ for j in 1:n_experiments
         #Adjust reference energies (permanent change)
         adjust_energies(train_confs,vref_dict)
         # Compute dataset with energy and force descriptors
-        train_ds = calc_descr(train_confs, basis)
+        train_ds = calc_descr(train_confs, basis_fitting)
         # Create result folder
         curr_sampler = "lsdpp"
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results
-        metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=vref_dict)
+        metrics_j = fit(exp_path, train_ds, test_ds, basis_fitting; vref_dict=vref_dict)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
                                       "batch_size_prop" => n/N,
@@ -177,13 +168,13 @@ for j in 1:n_experiments
         #Load atomistic configurations
         train_confs = get_confs(train_path, train_inds)
         # Compute dataset with energy and force descriptors
-        train_ds = calc_descr(train_confs, basis)
+        train_ds = calc_descr(train_confs, basis_fitting)
         # Create result folder
         curr_sampler = "srs"
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results
-        metrics_j = fit(exp_path, train_ds, test_ds, basis; vref_dict=vref_dict)
+        metrics_j = fit(exp_path, train_ds, test_ds, basis_fitting; vref_dict=vref_dict)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
                                       "batch_size_prop" => n/N,
