@@ -11,13 +11,13 @@ include("utils/samplers.jl")
 include("utils/aux_sample_functions.jl")
 include("utils/plots.jl")
 include("utils/plotmetrics.jl")
-include("utils/atom-conf-features-extxyz.jl")
+include("utils/atom-conf-features-xyz.jl")
 include("utils/xyz.jl")
 
 # Define paths and create experiment folder
-train_path = ["data/iso17/my_iso17_train.extxyz"]
-test_path = ["data/iso17/my_iso17_test.extxyz"]
-res_path  = "results-full-iso17/"
+train_path = ["data/md17/aspirin-train.xyz"]
+test_path = ["data/md17/aspirin-test.xyz"]
+res_path  = "results-aspirin-md17/"
 run(`mkdir -p $res_path`)
 
 # Helper functions
@@ -65,11 +65,11 @@ basis = ACE(species           = [:C, :O, :H],
             r0                = 1.43,
             rcutoff           = 4.4 );
 lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
-open("lsdpp-iso17.jls", "w") do io
+open("lsdpp-aspirin-md17.jls", "w") do io
     serialize(io, lsdpp)
     flush(io)
 end
-#lsdpp = deserialize("lsdpp-iso17.jls")
+#lsdpp = deserialize("lsdpp-aspirin-md17.jls")
 
 # Define number of experiments
 n_experiments = 1
@@ -86,7 +86,7 @@ N = length(lsdpp.weights)
 # Define basis for fitting
 basis_fitting = ACE(species           = [:C, :O, :H],
                     body_order        = 4,
-                    polynomial_degree = 16,
+                    polynomial_degree = 6,
                     wL                = 2.0,
                     csp               = 1.0,
                     r0                = 1.43,
@@ -131,11 +131,11 @@ for j in 1:n_experiments
     test_inds = sort(test_inds)
     test_confs = get_confs(test_path, test_inds)
     test_ds = calc_descr(test_confs, basis_fitting)
-    open("test-ds-lsdpp-iso17.jls", "w") do io
+    open("test-ds-aspirin-md17.jls", "w") do io
      serialize(io, test_ds)
      flush(io)
     end
-    #test_ds = deserialize("test-ds-lsdpp-iso17.jls")
+    #test_ds = deserialize("test-ds-aspirin-md17.jls")
     
     for n in sample_sizes
         # Sample training dataset using LSDPP ##################################
