@@ -7,7 +7,6 @@ include("../../src/lssampling.jl")
 
 # Domain specific functions
 include("utils/macros.jl")
-include("utils/samplers.jl")
 include("utils/aux_sample_functions.jl")
 include("utils/plots.jl")
 include("utils/plotmetrics.jl")
@@ -52,6 +51,16 @@ function calc_descr(confs, basis)
     GC.gc()
     ds = DataSet(confs .+ e_descr .+ f_descr)
     return ds
+end
+
+# function create_features(chunk::Vector)
+#     return chunk
+# end
+
+function create_feature(element::Vector)
+    system = element[1]
+    feature = sum(compute_local_descriptors(system, basis))
+    return feature
 end
 
 # Sampling experiments #########################################################

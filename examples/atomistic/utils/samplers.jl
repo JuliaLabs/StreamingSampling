@@ -62,8 +62,13 @@ end
 # Experimental samplers
 
 # LSDPP-based sampling method
-function create_features(chunk::Matrix)
+function create_features(chunk::Vector)
     return chunk
+end
+function create_feature(element::Vector)
+    system = element[1]
+    feature = sum(compute_local_descriptors(system, basis))
+    return feature
 end
 function lsdpp_sample(A, n; chunksize=4000, buffersize=1,
                       max=Inf, randomized=false)

@@ -4,7 +4,7 @@ function read_element(io::IO)
     return readline(io)
 end
 
-function create_feature(element)
+function create_feature(element::String)
     return parse.(Float64, split(element))
 end
 

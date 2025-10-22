@@ -3,15 +3,6 @@ using AtomsBase
 using InteratomicPotentials
 using StaticArrays
 
-# Domain specific feature calculation
-
-# Create a feature vector of an atomistic system using ACE
-function create_feature(element::Vector)
-    system = element[1]
-    feature = sum(compute_local_descriptors(system, basis))
-    return feature
-end
-
 # Reads an atomistic system: (EXTXYZ files)
 function read_element(io::IO)
 
