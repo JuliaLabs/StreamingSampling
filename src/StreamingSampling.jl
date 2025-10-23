@@ -35,7 +35,7 @@ include("ApproxWeights.jl")
 include("IncluProbsRelFreqs.jl")
 
 # Sampling
-include("UPmaxentropy/UPmaxentropy.jl")
+include("UPmaxentropy.jl")
 include("StreamMaxEnt.jl")
 include("Sampling.jl")
 
