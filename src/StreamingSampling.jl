@@ -19,9 +19,6 @@ using StatsBase
 # Samplers
 abstract type Sampler end
 
-# Data generator
-include("GenData.jl")
-
 # Chunk iterator
 include("LazyChunkIterator.jl")
 
