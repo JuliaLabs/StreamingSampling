@@ -1,15 +1,7 @@
-using PotentialLearning
-using OrderedCollections
-using Serialization
-
-# LSSampling
-include("../../src/StreamingSampling.jl")
+using StreamingSampling
 
 # Domain specific functions
-include("utils/macros.jl")
-include("utils/aux_sample_functions.jl")
-include("utils/plots.jl")
-include("utils/plotmetrics.jl")
+include("utils/AtomsSampling.jl")
 include("utils/atom-conf-features-xyz.jl")
 include("utils/xyz.jl")
 

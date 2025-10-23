@@ -1,24 +1,25 @@
-# Large Scale Sampling
+module StreamingSampling
+
+"""StreamingSampling
+
+Top-level module for the StreamingSampling package. This module re-exports
+the key types and functions from the `src/` files so examples can `using StreamingSampling`.
+"""
 
 using Base.Threads
 using Determinantal
 using Distances
-using Distributed 
 using Distributions
 using LinearAlgebra
-using Optim
-using Plots
 using Printf
 using Random
 using Statistics
 using StatsBase
-using Roots
 
 # Samplers
 abstract type Sampler end
-include("StreamMaxEnt.jl")
 
-# Data generation
+# Data generator
 include("GenData.jl")
 
 # Chunk iterator
@@ -35,5 +36,11 @@ include("IncluProbsRelFreqs.jl")
 
 # Sampling
 include("UPmaxentropy/UPmaxentropy.jl")
+include("StreamMaxEnt.jl")
 include("Sampling.jl")
+
+
+export Sampler, StreamMaxEnt, compute_weights, sample
+
+end # module
 

@@ -1,6 +1,3 @@
-using PotentialLearning
-import PotentialLearning.BasisPotential
-
 function subtract_peratom_e(config::Configuration, vref_dict)
     orig_e = get_energy(config)
     e_unit = orig_e.u

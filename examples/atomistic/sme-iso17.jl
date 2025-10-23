@@ -1,8 +1,7 @@
-# LSSampling
-include("../../src/StreamingSampling.jl")
+using StreamingSampling
 
 # Domain specific feature calculation
-include("utils/atom-conf-features-extxyz.jl")
+include("utils/AtomsSampling.jl")
 
 # Basis function to compute ACE descriptors (features)
 basis = ACE(species           = [:C, :O, :H],

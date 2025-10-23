@@ -1,15 +1,7 @@
-using PotentialLearning
-using OrderedCollections
-using Serialization
-
-# LSSampling
-include("../../src/StreamingSampling.jl")
+using StreamingSampling
 
 # Domain specific functions
-include("utils/macros.jl")
-include("utils/aux_sample_functions.jl")
-include("utils/plots.jl")
-include("utils/plotmetrics.jl")
+include("utils/AtomsSampling.jl")
 include("utils/atom-conf-features-extxyz.jl")
 include("utils/xyz.jl")
 
@@ -52,10 +44,6 @@ function calc_descr(confs, basis)
     ds = DataSet(confs .+ e_descr .+ f_descr)
     return ds
 end
-
-# function create_features(chunk::Vector)
-#     return chunk
-# end
 
 function create_feature(element::Vector)
     system = element[1]

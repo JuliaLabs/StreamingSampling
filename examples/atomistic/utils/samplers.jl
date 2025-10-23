@@ -1,9 +1,5 @@
 # Samplers used in sampling comparison experiments
 
-using Clustering
-using Determinantal
-using LowRankApprox
-using DelimitedFiles
 
 # Simple random sampling
 function simple_random_sample(A, n)

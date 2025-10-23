@@ -1,8 +1,3 @@
-using Unitful
-using AtomsBase
-using InteratomicPotentials
-using StaticArrays
-
 # Reads an atomistic system: (EXTXYZ files)
 function read_element(io::IO)
 

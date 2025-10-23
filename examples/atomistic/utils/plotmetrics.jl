@@ -1,5 +1,3 @@
-using DataFrames, CSV, Statistics, Plots, StatsBase,Printf, Measures
-
 function plotmetrics(res_path, metrics_filename)
     metrics = CSV.read("$res_path/$metrics_filename", DataFrame)
 

@@ -1,7 +1,3 @@
-# Functions for performing sampling comparisons
-
-include("./subtract_peratom_e.jl")
-
 # Fit function used to get errors based on sampling
 function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
 

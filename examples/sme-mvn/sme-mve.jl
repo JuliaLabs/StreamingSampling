@@ -1,4 +1,4 @@
-include("../../src/StreamingSampling.jl")
+using StreamingSampling
 
 # Generate synthetic data
 file_paths = ["data1.txt", "data2.txt", "data3.txt", "data4.txt"]
