@@ -1,2 +1,2 @@
-# LargeScaleSampling
+# StreamingSampling
 Proof of concept
