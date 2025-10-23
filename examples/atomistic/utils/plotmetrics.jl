@@ -159,7 +159,7 @@ function plotmetrics2(res_path::String)
     )
 
     energy_plot = plot(pE_top, pE_bottom; layout=(2,1), size=(1100,1100))
-    savefig(energy_plot, "$res_path/e_test_mae_by_sample_iso17.pdf")
+    savefig(energy_plot, "$res_path/e_test_mae_by_sample.pdf")
 
     # ======================= FORCE =======================
     pF_top = plot(
@@ -183,9 +183,9 @@ function plotmetrics2(res_path::String)
     )
 
     force_plot = plot(pF_top, pF_bottom; layout=(2,1), size=(1100,1100))
-    savefig(force_plot, "$res_path/f_test_mae_by_sample_iso17.pdf")
+    savefig(force_plot, "$res_path/f_test_mae_by_sample.pdf")
 
     println("✅ Saved:")
-    println(" - e_test_mae_by_sample_iso17.pdf")
-    println(" - f_test_mae_by_sample_iso17.pdf")
+    println(" - e_test_mae_by_sample.pdf")
+    println(" - f_test_mae_by_sample.pdf")
 end
