@@ -11,4 +11,5 @@ module load julia/1.10.4 # Engaging
 # Install Julia packages
 julia --project=./ -e 'import Pkg; Pkg.instantiate()'
 # Run the script
-julia --project=./ mlip-dpp-vs-lsdpp-md17.jl
+julia --project=./ mlip-src-vs-sme-hfo2.jl
+

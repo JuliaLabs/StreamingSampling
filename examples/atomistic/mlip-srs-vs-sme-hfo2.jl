@@ -118,12 +118,6 @@ function calc_descr!(confs, basis)
     confs = DataSet(confs .+ e_descr .+ f_descr)
 end
 
-# function create_feature(element::Vector)
-#     system = element[1]
-#     feature = sum(compute_local_descriptors(system, basis))
-#     return feature
-# end
-
 function create_feature(element::Configuration)
     system = get_system(element)
     feature = sum(compute_local_descriptors(system, basis))
