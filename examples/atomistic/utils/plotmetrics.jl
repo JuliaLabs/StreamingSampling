@@ -83,7 +83,7 @@ function plotmetrics2(res_path::String)
     sort!(df, [:batch_size])
 
     srs = filter(:method => ==("srs"),   df)
-    spd = filter(:method => ==("lsdpp"), df)   # labeled as SPD
+    spd = filter(:method => ==("sme"), df)   # labeled as SPD
 
     # ---------------- Percent formatting (round UP, fixed) ----------------
     # ≥ 1%  -> ceil to integer (no decimals)

@@ -1,33 +1,33 @@
 # Large Scale DPP approximation
 
-mutable struct LSDPP <: Sampler
+mutable struct StreamMaxEnt <: Sampler
     weights::Vector{Float64}
     chunksize::Int
     subchunksize::Int
 
-    function LSDPP(file_paths::Vector{String}; chunksize=1000, subchunksize=100,
+    function StreamMaxEnt(file_paths::Vector{String}; chunksize=1000, subchunksize=100,
                    buffersize=32, max=Inf, randomized=true)
-        lsdpp = new(Vector{Float64}(), chunksize, subchunksize)
-        lsdpp.weights = compute_weights(lsdpp, file_paths; chunksize=chunksize,
+        sme = new(Vector{Float64}(), chunksize, subchunksize)
+        sme.weights = compute_weights(sme, file_paths; chunksize=chunksize,
                                         subchunksize=subchunksize,
                                         buffersize=buffersize, max=max,
                                         randomized=randomized)
-        return lsdpp
+        return sme
     end
     
-    function LSDPP(A::Vector; chunksize=1000, subchunksize=100, buffersize=32,
+    function StreamMaxEnt(A::Vector; chunksize=1000, subchunksize=100, buffersize=32,
                    max=Inf, randomized=true)
-        lsdpp = new(Vector{Float64}(), chunksize, subchunksize)
-        lsdpp.weights = compute_weights(lsdpp, A; chunksize=chunksize,
+        sme = new(Vector{Float64}(), chunksize, subchunksize)
+        sme.weights = compute_weights(sme, A; chunksize=chunksize,
                                         subchunksize=subchunksize,
                                         buffersize=buffersize, max=max,
                                         randomized=randomized)
-        return lsdpp
+        return sme
     end
 end
 
 # Compute feature weights based on DPP inclusion probabilities
-function compute_weights(sampler::LSDPP, features::Matrix{Float64})
+function compute_weights(sampler::StreamMaxEnt, features::Matrix{Float64})
     # Get number of features
     N, _ = size(features)
     # Compute pairwise Euclidean distances on the transposed features

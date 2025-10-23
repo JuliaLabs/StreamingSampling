@@ -16,24 +16,24 @@ using Roots
 
 # Samplers
 abstract type Sampler end
-include("lsdpp.jl")
+include("StreamMaxEnt.jl")
 
 # Data generation
-include("gen-data.jl")
+include("GenData.jl")
 
 # Chunk iterator
-include("lazy-chunk-iterator.jl")
+include("LazyChunkIterator.jl")
 
 # Features
-include("features.jl")
+include("Features.jl")
 
 # Approximated weights
-include("approx-weights.jl")
+include("ApproxWeights.jl")
 
 # Inclusion probabilities and relative frequencies
-include("inclu-probs-rel-freqs.jl")
+include("IncluProbsRelFreqs.jl")
 
 # Sampling
 include("UPmaxentropy/UPmaxentropy.jl")
-include("sampling.jl")
+include("Sampling.jl")
 

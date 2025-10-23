@@ -61,7 +61,7 @@ end
 
 # Experimental samplers
 
-# LSDPP-based sampling method
+# StreamMaxEnt-based sampling method
 function create_features(chunk::Vector)
     return chunk
 end
@@ -70,13 +70,13 @@ function create_feature(element::Vector)
     feature = sum(compute_local_descriptors(system, basis))
     return feature
 end
-function lsdpp_sample(A, n; chunksize=4000, buffersize=1,
+function sme_sample(A, n; chunksize=4000, buffersize=1,
                       max=Inf, randomized=false)
     N = size(A, 1)
     N′ = ceil(Int, N/2)
-    lsdpp = LSDPP(Matrix(A); chunksize=min(N′, chunksize),
+    sme = StreamMaxEnt(Matrix(A); chunksize=min(N′, chunksize),
                   max=max, randomized=randomized)
-    inds = sample(lsdpp, n)
+    inds = sample(sme, n)
     return inds
 end
 

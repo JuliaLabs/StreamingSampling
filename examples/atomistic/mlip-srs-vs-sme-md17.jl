@@ -3,7 +3,7 @@ using OrderedCollections
 using Serialization
 
 # LSSampling
-include("../../src/lssampling.jl")
+include("../../src/StreamingSampling.jl")
 
 # Domain specific functions
 include("utils/macros.jl")
@@ -61,7 +61,7 @@ end
 
 # Sampling experiments #########################################################
 
-# Setup LSDPP
+# Setup StreamMaxEnt
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
             polynomial_degree = 6,
@@ -69,12 +69,12 @@ basis = ACE(species           = [:C, :O, :H],
             csp               = 1.0,
             r0                = 1.43,
             rcutoff           = 4.4 );
-lsdpp = LSDPP(train_path; chunksize=2000, subchunksize=200)
-open("lsdpp-aspirin-md17.jls", "w") do io
-    serialize(io, lsdpp)
+sme = StreamMaxEnt(train_path; chunksize=2000, subchunksize=200)
+open("sme-aspirin-md17.jls", "w") do io
+    serialize(io, sme)
     flush(io)
 end
-#lsdpp = deserialize("lsdpp-aspirin-md17.jls")
+#sme = deserialize("sme-aspirin-md17.jls")
 
 # Define number of experiments
 n_experiments = 1
@@ -86,7 +86,7 @@ sample_sizes = [1_000, 5_000, 10_000]
 m = 10_000
 
 # Full dataset size
-N = length(lsdpp.weights)
+N = length(sme.weights)
 
 # Define basis for fitting
 basis_fitting = ACE(species           = [:C, :O, :H],
@@ -143,8 +143,8 @@ for j in 1:n_experiments
     #test_ds = deserialize("test-ds-aspirin-md17.jls")
     
     for n in sample_sizes
-        # Sample training dataset using LSDPP ##################################
-        train_inds = sort(sample(lsdpp, n))
+        # Sample training dataset using StreamMaxEnt ##################################
+        train_inds = sort(sample(sme, n))
         #Load atomistic configurations
         train_confs = get_confs(train_path, train_inds)
         #Adjust reference energies (permanent change)
@@ -152,7 +152,7 @@ for j in 1:n_experiments
         # Compute dataset with energy and force descriptors
         train_ds = calc_descr(train_confs, basis_fitting)
         # Create result folder
-        curr_sampler = "lsdpp"
+        curr_sampler = "sme"
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results

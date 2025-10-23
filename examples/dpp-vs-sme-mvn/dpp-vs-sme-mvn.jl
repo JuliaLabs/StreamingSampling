@@ -1,5 +1,5 @@
 # LSSampling
-include("../../src/lssampling.jl")
+include("../../src/StreamingSampling.jl")
 
 # Sample size and dataset size
 n = 200
@@ -10,9 +10,9 @@ file_paths = ["data1.txt", "data2.txt", "data3.txt", "data4.txt"]
 generate_data(file_paths; N=N, feature_size=50);
 
 # Sampling by DPP
-Random.seed!(42) # Fixed seed to compare DPP and LSDPP: get same random chunks
+Random.seed!(42) # Fixed seed to compare DPP and StreamMaxEnt: get same random chunks
 @time begin
-    ch = chunk_iterator(file_paths; chunksize=N)
+    ch, _ = chunk_iterator(file_paths; chunksize=N)
     chunk, _ = take!(ch)
     features = create_features(chunk)
     D = pairwise(Euclidean(), features')
@@ -26,44 +26,44 @@ chunk = nothing;
 features = nothing;
 GC.gc()
 
-# Sampling by LSDPP
-Random.seed!(42) # Fix seed to compare DPP and LSDPP: get same random chunks
+# Sampling by StreamMaxEnt
+Random.seed!(42) # Fix seed to compare DPP and StreamMaxEnt: get same random chunks
 @time begin
-    lsdpp = LSDPP(file_paths; chunksize=500, max=N)
-    lsdpp_probs = inclusion_prob(lsdpp, n)
-    lsdpp_indexes = sample(lsdpp, n)
+    sme = StreamMaxEnt(file_paths; chunksize=500, max=N)
+    sme_probs = inclusion_prob(sme, n)
+    sme_indexes = sample(sme, n)
 end
 
 # Tests and plots
 
-# DPP vs. LSDPP inclusion probabilities when sampling 
+# DPP vs. StreamMaxEnt inclusion probabilities when sampling 
 # n points from a set of size N, with each point of size M
-scatter(dpp_probs, lsdpp_probs, color="red", alpha=0.5)
+scatter(dpp_probs, sme_probs, color="red", alpha=0.5)
 plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
-plot!(ylabel="LSDPP inclusion probabilities")
+plot!(ylabel="StreamMaxEnt inclusion probabilities")
 plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-probs-mvn.png")
+savefig("dpp-probs-vs-sme-probs-mvn.png")
 
-# DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies when
+# DPP theoretical inclusion probabilities vs StreamMaxEnt inclusion frequencies when
 # sampling n points from a set of size N, with each point of size M
 iterations = 20_000_000 # Use 20_000_000
-lsdpp_freqs = relative_frequencies(lsdpp, n, iterations)
-scatter(dpp_probs, lsdpp_freqs, color="red", alpha=0.5)
+sme_freqs = relative_frequencies(sme, n, iterations)
+scatter(dpp_probs, sme_freqs, color="red", alpha=0.5)
 plot!(dpp_probs, dpp_probs, color="blue", alpha=0.5)
 plot!(xlabel="DPP inclusion probabilities")
-plot!(ylabel="LSDPP inclusion frequencies")
+plot!(ylabel="StreamMaxEnt inclusion frequencies")
 plot!(legend=false, dpi=300)
-savefig("dpp-probs-vs-lsdpp-freqs-mvn.png")
+savefig("dpp-probs-vs-sme-freqs-mvn.png")
 
-# DPP theoretical inclusion probabilities vs LSDPP inclusion frequencies of 2 
+# DPP theoretical inclusion probabilities vs StreamMaxEnt inclusion frequencies of 2 
 # random points, when sampling n points from a set of size N, with each point of size M
 set = rand(1:N, 2)
 iterations = 1_000_000
-lsdpp_set_freqs = relative_frequencies(lsdpp, set, n, iterations)
+sme_set_freqs = relative_frequencies(sme, set, n, iterations)
 dpp_set_freqs = det(marginal_kernel(dpp)[set, set])
 @printf("DPP inclusion probability for dataset %s is %f \n", 
          string(set), dpp_set_freqs)
-@printf("LSDPP inclusion probability for dataset %s is %f \n",
-         string(set), lsdpp_set_freqs)
+@printf("StreamMaxEnt inclusion probability for dataset %s is %f \n",
+         string(set), sme_set_freqs)
 

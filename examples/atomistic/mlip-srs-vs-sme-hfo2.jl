@@ -3,7 +3,7 @@ using OrderedCollections
 using Serialization
 
 # LSSampling
-include("../../src/lssampling.jl")
+include("../../src/StreamingSampling.jl")
 
 # Domain specific functions
 include("utils/macros.jl")
@@ -187,7 +187,7 @@ basis_fitting = ACE(species           = [:Hf, :O],
 calc_descr!(ds_train_rnd, basis_fitting)
 calc_descr!(ds_test_rnd, basis_fitting)
 
-# Setup LSDPP
+# Setup StreamMaxEnt
 basis = ACE(species           = [:Hf, :O],
             body_order        = 2,
             polynomial_degree = 3,
@@ -195,12 +195,12 @@ basis = ACE(species           = [:Hf, :O],
             csp               = 1.0,
             r0                = 1.43,
             rcutoff           = 4.4 );
-lsdpp = LSDPP(ds_train_rnd.Configurations; chunksize=2000, subchunksize=200)
-open("lsdpp-h2o2.jls", "w") do io
-    serialize(io, lsdpp)
+sme = StreamMaxEnt(ds_train_rnd.Configurations; chunksize=2000, subchunksize=200)
+open("sme-h2o2.jls", "w") do io
+    serialize(io, sme)
     flush(io)
 end
-#lsdpp = deserialize("lsdpp-h2o2.jls")
+#sme = deserialize("sme-h2o2.jls")
 
 # Define number of experiments
 n_experiments = 1
@@ -209,7 +209,7 @@ n_experiments = 1
 sample_sizes = [1_000, 5_000, 10_000]
 
 # Full dataset size
-N = length(lsdpp.weights)
+N = length(sme.weights)
 
 # Create metric dataframe
 metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,
@@ -226,12 +226,12 @@ for j in 1:n_experiments
     global metrics
 
     for n in sample_sizes
-        # Sample training dataset using LSDPP ##################################
-        train_inds = sort(sample(lsdpp, n))
+        # Sample training dataset using StreamMaxEnt ##################################
+        train_inds = sort(sample(sme, n))
         #Load atomistic configurations
         train_ds = @views ds_train_rnd[train_inds]
         # Create result folder
-        curr_sampler = "lsdpp"
+        curr_sampler = "sme"
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results
