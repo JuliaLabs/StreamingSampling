@@ -77,13 +77,13 @@ function plotmetrics(res_path, metrics_filename)
     end
 end
 
-function plotmetrics2(res_path::String)
+function plotmetrics2(res_path, metrics_filename)
     # ---------------- Load & prep ----------------
     df  = CSV.read("$res_path/metrics.csv", DataFrame)
     sort!(df, [:batch_size])
 
     srs = filter(:method => ==("srs"),   df)
-    spd = filter(:method => ==("sme"), df)   # labeled as SPD
+    sme = filter(:method => ==("sme"), df)
 
     # ---------------- Percent formatting (round UP, fixed) ----------------
     # ≥ 1%  -> ceil to integer (no decimals)
@@ -103,9 +103,9 @@ function plotmetrics2(res_path::String)
     end
 
     # ---------------- X tick labels ----------------
-    xs = spd.batch_size
+    xs = sme.batch_size
     xtick_labels = [string(bs, "\n", format_percent_roundup(prop))
-                    for (bs, prop) in zip(spd.batch_size, spd.batch_size_prop)]
+                    for (bs, prop) in zip(sme.batch_size, sme.batch_size_prop)]
 
     # ---------------- Colors ----------------
     black = RGB(0,0,0)
@@ -148,14 +148,14 @@ function plotmetrics2(res_path::String)
     )
 
     pE_bottom = plot(
-        spd.batch_size, spd.e_test_mae;
+        sme.batch_size, sme.e_test_mae;
         color = red, lw = 5.5, marker = :utriangle,
         xlabel = "Training Dataset Size (Sample Size)",
         ylabel = "E MAE | eV/atom",
-        label = "SPD",
+        label = "SME",
         xticks = (xs, xtick_labels),
         legend = :topright,
-        ylims = padlims(spd.e_test_mae),
+        ylims = padlims(sme.e_test_mae),
     )
 
     energy_plot = plot(pE_top, pE_bottom; layout=(2,1), size=(1100,1100))
@@ -172,14 +172,14 @@ function plotmetrics2(res_path::String)
     )
 
     pF_bottom = plot(
-        spd.batch_size, spd.f_test_mae;
+        sme.batch_size, sme.f_test_mae;
         color = red, lw = 5.5, marker = :utriangle,
         xlabel = "Training Dataset Size (Sample Size)",
         ylabel = "F MAE | eV/Å",
-        label = "SPD",
+        label = "SME",
         xticks = (xs, xtick_labels),
         legend = :topright,
-        ylims = padlims(spd.f_test_mae),
+        ylims = padlims(SME.f_test_mae),
     )
 
     force_plot = plot(pF_top, pF_bottom; layout=(2,1), size=(1100,1100))
