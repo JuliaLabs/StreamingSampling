@@ -7,12 +7,13 @@
 function inclusion_prob(sampler::Sampler, n::Int)
     @views ws = sampler.weights
     N = length(ws)
+    min_prob = minimum(ws)
     A = [ sum(ws) N;
           minimum(ws) 1.0]
-    min_prob = minimum(sampler.weights)
     b = [n, min_prob]
     x, y = A \ b
-    return x*ws.+y
+    ps = x*ws.+y
+    return ps
 end
 
 function relative_frequencies(sampler::Sampler, n::Int, iterations::Int)

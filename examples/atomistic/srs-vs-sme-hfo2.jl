@@ -1,4 +1,3 @@
-# StreamingSampling
 using StreamingSampling
 
 # Domain specific functions
@@ -152,7 +151,7 @@ n_test = length(ds_test_rnd)
 
 # Compute reference energies
 s = 0.0
-m = 100#10_000
+m = 10_000
 ch, _ = chunk_iterator(ds_paths; chunksize=m, buffersize=1, randomized=true)
 c, _ = take!(ch)
 close(ch)
