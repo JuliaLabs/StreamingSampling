@@ -178,8 +178,8 @@ adjust_energies(ds_train_rnd,vref_dict)
 
 # Define basis for fitting
 basis_fitting = ACE(species           = [:Hf, :O],
-                    body_order        = 2,
-                    polynomial_degree = 3,
+                    body_order        = 4,
+                    polynomial_degree = 12,
                     wL                = 2.0,
                     csp               = 1.0,
                     r0                = 1.43,
@@ -189,8 +189,8 @@ calc_descr!(ds_test_rnd, basis_fitting)
 
 # Setup StreamMaxEnt
 basis = ACE(species           = [:Hf, :O],
-            body_order        = 2,
-            polynomial_degree = 3,
+            body_order        = 4,
+            polynomial_degree = 6,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,

@@ -64,7 +64,7 @@ end
 # Setup StreamMaxEnt
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 6,
+            polynomial_degree = 12,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
