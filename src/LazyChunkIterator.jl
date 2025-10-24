@@ -1,17 +1,27 @@
 # Lazy chunk iterator functions: randomized and sequential implementations
 
-function chunk_iterator(file_paths::Vector{String}; chunksize=100,
-                        buffersize=32, randomized=true)
+function chunk_iterator(file_paths::Vector{String};
+                        read_element=read_element,
+                        chunksize=200,
+                        buffersize=32,
+                        randomized=true)
     if randomized
-        return chunk_iterator_rnd(file_paths; chunksize=chunksize,
+        return chunk_iterator_rnd(file_paths;
+                                  read_element=read_element,
+                                  chunksize=chunksize,
                                   buffersize=buffersize)
     else
-        return chunk_iterator_seq(file_paths; chunksize=chunksize,
+        return chunk_iterator_seq(file_paths;
+                                  read_element=read_element,
+                                  chunksize=chunksize,
                                   buffersize=buffersize)
     end
 end
 
-function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=100, buffersize=32)
+function chunk_iterator_rnd(file_paths::Vector{String};
+                            read_element=read_element,
+                            chunksize=200,
+                            buffersize=32)
     N = 0
     ch = Channel{Tuple{Vector,Vector{Int}}}(buffersize) do ch
         # First pass to know file positions
@@ -59,7 +69,10 @@ function chunk_iterator_rnd(file_paths::Vector{String}; chunksize=100, buffersiz
     return ch, N
 end
 
-function chunk_iterator_seq(file_paths::Vector{String}; chunksize=100, buffersize=32)
+function chunk_iterator_seq(file_paths::Vector{String};
+                            read_element=read_element,
+                            chunksize=200,
+                            buffersize=32)
     # First pass to know dataset size
     N = 0
     for (i,filepath) in enumerate(file_paths)
@@ -97,7 +110,10 @@ function chunk_iterator_seq(file_paths::Vector{String}; chunksize=100, buffersiz
     return ch, N
 end
 
-function chunk_iterator(A::Vector; chunksize=100, buffersize=32, randomized=true)
+function chunk_iterator(A::Vector;
+                        chunksize=200,
+                        buffersize=32,
+                        randomized=true)
     N = length(A)
     inds = randomized ? randperm(N) : collect(1:N)
     n_chunks = ceil(Int, N / chunksize)

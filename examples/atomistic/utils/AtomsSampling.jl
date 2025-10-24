@@ -19,13 +19,12 @@ using Unitful
 
 import PotentialLearning.BasisPotential
 
+include("read-element.jl")
 include("macros.jl")
 include("subtract_peratom_e.jl")
 include("aux_sample_functions.jl")
 #include("samplers.jl")
 include("plots.jl")
 include("plotmetrics.jl")
-#include("atom-conf-features-xyz.jl")
-#include("atom-conf-features-extxyz.jl")
 #include("xyz.jl")
 

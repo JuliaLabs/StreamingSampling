@@ -5,29 +5,54 @@ mutable struct StreamMaxEnt <: Sampler
     chunksize::Int
     subchunksize::Int
 
-    function StreamMaxEnt(file_paths::Vector{String}; chunksize=1000, subchunksize=100,
-                   buffersize=32, max=Inf, randomized=true)
-        sme = new(Vector{Float64}(), chunksize, subchunksize)
-        sme.weights = compute_weights(sme, file_paths; chunksize=chunksize,
-                                        subchunksize=subchunksize,
-                                        buffersize=buffersize, max=max,
-                                        randomized=randomized)
-        return sme
+    function StreamMaxEnt(file_paths::Vector{String}; 
+                          read_element=read_element,
+                          create_feature=create_feature,
+                          chunksize=2000,
+                          subchunksize=200,
+                          buffersize=32,
+                          max=Inf,
+                          randomized=true)
+        sampler = new(Vector{Float64}(),
+                      chunksize,
+                      subchunksize)
+        sampler.weights = compute_weights(sampler, file_paths;
+                                          read_element=read_element,
+                                          create_feature=create_feature,
+                                          chunksize=chunksize,
+                                          subchunksize=subchunksize,
+                                          buffersize=buffersize,
+                                          max=max,
+                                          randomized=randomized)
+        return sampler
     end
     
-    function StreamMaxEnt(A::Vector; chunksize=1000, subchunksize=100, buffersize=32,
-                   max=Inf, randomized=true)
-        sme = new(Vector{Float64}(), chunksize, subchunksize)
-        sme.weights = compute_weights(sme, A; chunksize=chunksize,
-                                        subchunksize=subchunksize,
-                                        buffersize=buffersize, max=max,
-                                        randomized=randomized)
-        return sme
+    function StreamMaxEnt(A::Vector;
+                          read_element=read_element,
+                          create_feature=create_feature,
+                          chunksize=2000,
+                          subchunksize=200,
+                          buffersize=32,
+                          max=Inf,
+                          randomized=true)
+        sampler = new(Vector{Float64}(),
+                      chunksize,
+                      subchunksize)
+        sampler.weights = compute_weights(sampler, A;
+                                          read_element=read_element,
+                                          create_feature=create_feature,
+                                          chunksize=chunksize,
+                                          subchunksize=subchunksize,
+                                          buffersize=buffersize,
+                                          max=max,
+                                          randomized=randomized)
+        return sampler
     end
 end
 
 # Compute feature weights based on DPP inclusion probabilities
-function compute_weights(sampler::StreamMaxEnt, features::Matrix{Float64})
+function compute_weights(sampler::StreamMaxEnt,
+                         features::Matrix{Float64})
     # Get number of features
     N, _ = size(features)
     # Compute pairwise Euclidean distances on the transposed features

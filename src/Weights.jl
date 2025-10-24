@@ -1,30 +1,56 @@
 # Weight computation: used to compute inclusion probabilities and sampling
 
 function compute_weights(sampler::Sampler, file_paths::Vector{String};
-                         chunksize=1000, subchunksize=100, buffersize=32,
-                         max=Inf, randomized=true)
-    ch, N = chunk_iterator(file_paths; chunksize=subchunksize, 
-                           buffersize=buffersize, randomized=randomized)
-    if max == Inf
-        max = N
-    end
-    return compute_weights(sampler, ch; chunksize=chunksize,
-                           subchunksize=subchunksize, max=max)
-end
-
-function compute_weights(sampler::Sampler, A::Vector; chunksize=1000,
-                         subchunksize=100, buffersize=32, max=Inf, randomized=true)
-    ch, N = chunk_iterator(A; chunksize=subchunksize, buffersize=buffersize,
+                         read_element=read_element,
+                         create_feature=create_feature,
+                         chunksize=2000,
+                         subchunksize=200,
+                         buffersize=32,
+                         max=Inf,
+                         randomized=true)
+    ch, N = chunk_iterator(file_paths;
+                           read_element=read_element,
+                           chunksize=subchunksize, 
+                           buffersize=buffersize,
                            randomized=randomized)
     if max == Inf
         max = N
     end
-    return compute_weights(sampler, ch; chunksize=chunksize,
-                           subchunksize=subchunksize, max=max)
+    return compute_weights(sampler, ch;
+                           create_feature=create_feature,
+                           chunksize=chunksize,
+                           subchunksize=subchunksize,
+                           max=max)
+end
+
+function compute_weights(sampler::Sampler, A::Vector;
+                         read_element=read_element,
+                         create_feature=create_feature,
+                         chunksize=1000,
+                         subchunksize=100,
+                         buffersize=32,
+                         max=Inf,
+                         randomized=true)
+    ch, N = chunk_iterator(A;
+                           read_element=read_element,
+                           chunksize=subchunksize,
+                           buffersize=buffersize,
+                           randomized=randomized)
+    if max == Inf
+        max = N
+    end
+    return compute_weights(sampler, ch;
+                           create_feature=create_feature,
+                           chunksize=chunksize,
+                           subchunksize=subchunksize,
+                           max=max)
 end
 
 function compute_weights(sampler::Sampler, ch::Channel;
-                         chunksize=1000, subchunksize=100, max=Inf)
+                         create_feature=create_feature,
+                         chunksize=1000,
+                         subchunksize=100,
+                         max=Inf)
     # Step 1: Setup stage ######################################################
     @printf("Computing sampler weights...\n")
     @printf("Iteration 1. ")
@@ -39,7 +65,7 @@ function compute_weights(sampler::Sampler, ch::Channel;
     elems = vcat(elems...)
     ginds = vcat(ginds...)
     # Compute a feature for each element
-    fs = create_features(elems)
+    fs = create_features(elems; create_feature=create_feature)
     # Compute a weight for each feature
     ws = compute_weights(sampler, fs)
     min = minimum(ws)
@@ -69,7 +95,8 @@ function compute_weights(sampler::Sampler, ch::Channel;
         elems[inds_to_update] .= new_elems
         
         # Update features: compute a feature for each new element
-        fs[inds_to_update, :] .= create_features(new_elems)
+        fs[inds_to_update, :] .= create_features(new_elems;
+                                                 create_feature=create_feature)
         
         # Update weights: compute a weight for each feature
         ws = compute_weights(sampler, fs)

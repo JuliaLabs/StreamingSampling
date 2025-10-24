@@ -8,7 +8,8 @@ function create_feature(element::String)
     return parse.(Float64, split(element))
 end
 
-function create_features(chunk::AbstractVector{T}) where T
+function create_features(chunk::AbstractVector{T};
+                         create_feature=create_feature) where T
     chunksize = length(chunk)
     features = Vector{Any}(undef, chunksize)
     Threads.@threads for i in eachindex(chunk)
