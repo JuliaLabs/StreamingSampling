@@ -3,7 +3,6 @@ using StreamingSampling
 # Domain specific functions
 include("utils/AtomsSampling.jl")
 include("utils/atom-conf-features-xyz.jl")
-include("utils/xyz.jl")
 
 # Define paths and create experiment folder
 train_path = ["data/md17/aspirin-train.xyz"]

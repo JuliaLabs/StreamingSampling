@@ -3,7 +3,6 @@ using StreamingSampling
 # Domain specific functions
 include("utils/AtomsSampling.jl")
 include("utils/atom-conf-features-extxyz.jl")
-include("utils/xyz.jl")
 
 # Define paths and create experiment folder
 ds_paths = ["Hf_mp1009460_EOS_form_sorted.extxyz",
