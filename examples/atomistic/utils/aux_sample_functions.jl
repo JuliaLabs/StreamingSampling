@@ -1,3 +1,36 @@
+function get_confs(path, inds)
+    confs = []
+    ch, N = chunk_iterator(train_path; chunksize=1000, randomized=false)
+    k = 1
+    for (c, ci) in ch
+        j = 1
+        while j <= length(c) && k <= length(inds)
+            if inds[k] == ci[j]
+                system, energy, forces = c[j]
+                conf = Configuration(system, Energy(energy),
+                                     Forces([Force(f) for f in forces]))
+                push!(confs, conf)
+                k += 1
+            end
+            j += 1
+        end
+        if k > length(inds)
+            break
+        end
+    end
+    return DataSet(confs)
+end
+
+function calc_descr!(confs, basis)
+    println("Computing energy descriptors of dataset...")
+    e_descr = compute_local_descriptors(confs, basis)
+    println("Computing force descriptors of dataset...")
+    f_descr = compute_force_descriptors(confs, basis)
+    GC.gc()
+    confs = DataSet(confs .+ e_descr .+ f_descr)
+end
+
+
 # Fit function used to get errors based on sampling
 function fit(path, ds_train, ds_test, basis; vref_dict=nothing)
 

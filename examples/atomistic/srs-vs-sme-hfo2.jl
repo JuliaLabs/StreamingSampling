@@ -1,8 +1,6 @@
 using StreamingSampling
 
-# Domain specific functions
 include("utils/AtomsSampling.jl")
-include("utils/atom-conf-features-extxyz.jl")
 
 # Define paths and create experiment folder
 ds_paths = ["Hf_mp1009460_EOS_form_sorted.extxyz",
@@ -72,48 +70,8 @@ ds_paths = ["Hf_mp1009460_EOS_form_sorted.extxyz",
             "O2_AL_sel_gen17_form.extxyz",
             "O2_AL_sel_gen5_form.extxyz"]
 ds_paths = "data/hfox_data_spencer/" .* ds_paths # N=30712
-
 res_path  = "results-hfo2/"
 run(`mkdir -p $res_path`)
-
-# Helper functions
-function get_confs(path, inds)
-    confs = []
-    ch, N = chunk_iterator(train_path; chunksize=1000, randomized=false)
-    k = 1
-    for (c, ci) in ch
-        j = 1
-        while j <= length(c) && k <= length(inds)
-            if inds[k] == ci[j]
-                system, energy, forces = c[j]
-                conf = Configuration(system, Energy(energy),
-                                     Forces([Force(f) for f in forces]))
-                push!(confs, conf)
-                k += 1
-            end
-            j += 1
-        end
-        if k > length(inds)
-            break
-        end
-    end
-    return DataSet(confs)
-end
-
-function calc_descr!(confs, basis)
-    println("Computing energy descriptors of dataset...")
-    e_descr = compute_local_descriptors(confs, basis)
-    println("Computing force descriptors of dataset...")
-    f_descr = compute_force_descriptors(confs, basis)
-    GC.gc()
-    confs = DataSet(confs .+ e_descr .+ f_descr)
-end
-
-function create_feature(element::Configuration)
-    system = get_system(element)
-    feature = sum(compute_local_descriptors(system, basis))
-    return feature
-end
 
 # Sampling experiments #########################################################
 
@@ -179,6 +137,7 @@ calc_descr!(ds_train_rnd, basis_fitting)
 calc_descr!(ds_test_rnd, basis_fitting)
 
 # Setup StreamMaxEnt
+include("utils/atom-conf-features-extxyz.jl")
 basis = ACE(species           = [:Hf, :O],
             body_order        = 4,
             polynomial_degree = 6,
@@ -186,6 +145,11 @@ basis = ACE(species           = [:Hf, :O],
             csp               = 1.0,
             r0                = 1.43,
             rcutoff           = 4.4 );
+function create_feature(element::Configuration)
+    system = get_system(element)
+    feature = sum(compute_local_descriptors(system, basis))
+    return feature
+end
 sme = StreamMaxEnt(ds_train_rnd.Configurations; chunksize=2000, subchunksize=200)
 open("sme-h2o2.jls", "w") do io
     serialize(io, sme)

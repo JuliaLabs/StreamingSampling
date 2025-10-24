@@ -1,6 +1,7 @@
 using StreamingSampling
 
-# Domain specific functions for sampling
+# Domain specific functions
+include("utils/AtomsSampling.jl")
 include("utils/atom-conf-features-extxyz.jl") # read_element
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,

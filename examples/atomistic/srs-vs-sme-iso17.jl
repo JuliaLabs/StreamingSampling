@@ -1,8 +1,6 @@
 using StreamingSampling
 
-# Domain specific functions
 include("utils/AtomsSampling.jl")
-include("utils/atom-conf-features-extxyz.jl")
 
 # Define paths and create experiment folder
 train_path = ["data/iso17/my_iso17_train.extxyz"]
@@ -10,49 +8,10 @@ test_path = ["data/iso17/my_iso17_test.extxyz"]
 res_path  = "results-full-iso17/"
 run(`mkdir -p $res_path`)
 
-# Helper functions
-function get_confs(path, inds)
-    confs = []
-    ch, N = chunk_iterator(train_path; chunksize=1000, randomized=false)
-    k = 1
-    for (c, ci) in ch
-        j = 1
-        while j <= length(c) && k <= length(inds)
-            if inds[k] == ci[j]
-                system, energy, forces = c[j]
-                conf = Configuration(system, Energy(energy),
-                                     Forces([Force(f) for f in forces]))
-                push!(confs, conf)
-                k += 1
-            end
-            j += 1
-        end
-        if k > length(inds)
-            break
-        end
-    end
-    return DataSet(confs)
-end
-
-function calc_descr(confs, basis)
-    println("Computing energy descriptors of dataset...")
-    e_descr = compute_local_descriptors(confs, basis)
-    println("Computing force descriptors of dataset...")
-    f_descr = compute_force_descriptors(confs, basis)
-    GC.gc()
-    ds = DataSet(confs .+ e_descr .+ f_descr)
-    return ds
-end
-
-function create_feature(element::Vector)
-    system = element[1]
-    feature = sum(compute_local_descriptors(system, basis))
-    return feature
-end
-
 # Sampling experiments #########################################################
 
 # Setup StreamMaxEnt
+include("utils/atom-conf-features-extxyz.jl")
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
             polynomial_degree = 6,
@@ -60,6 +19,11 @@ basis = ACE(species           = [:C, :O, :H],
             csp               = 1.0,
             r0                = 1.43,
             rcutoff           = 4.4 );
+function create_feature(element::Vector)
+    system = element[1]
+    feature = sum(compute_local_descriptors(system, basis))
+    return feature
+end
 sme = StreamMaxEnt(train_path; chunksize=2000, subchunksize=200)
 open("sme-iso17.jls", "w") do io
     serialize(io, sme)
