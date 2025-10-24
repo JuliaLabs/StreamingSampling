@@ -1,4 +1,4 @@
-# Large Scale DPP approximation
+# Streaming Maximum Entropy Sampling
 
 mutable struct StreamMaxEnt <: Sampler
     weights::Vector{Float64}

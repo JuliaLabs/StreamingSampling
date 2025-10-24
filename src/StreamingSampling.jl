@@ -1,11 +1,5 @@
 module StreamingSampling
 
-"""StreamingSampling
-
-Top-level module for the StreamingSampling package. This module re-exports
-the key types and functions from the `src/` files so examples can `using StreamingSampling`.
-"""
-
 using Base.Threads
 using Determinantal
 using Distances
@@ -16,7 +10,7 @@ using Random
 using Statistics
 using StatsBase
 
-# Samplers
+# Sampler abstract type
 abstract type Sampler end
 
 # Chunk iterator
@@ -26,15 +20,18 @@ include("LazyChunkIterator.jl")
 include("Features.jl")
 
 # Approximated weights
-include("ApproxWeights.jl")
+include("Weights.jl")
 
-# Inclusion probabilities and relative frequencies
-include("IncluProbsRelFreqs.jl")
+# Inclusion probabilities
+include("IncluProbs.jl")
+
+# Relative frequencies
+include("RelFreqs.jl")
 
 # Sampling
 include("UPmaxentropy.jl")
-include("StreamMaxEnt.jl")
 include("Sampling.jl")
+include("StreamMaxEnt.jl")
 
 
 export Sampler, StreamMaxEnt, compute_weights, sample

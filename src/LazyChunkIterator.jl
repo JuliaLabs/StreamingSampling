@@ -1,4 +1,4 @@
-# Lazy chunk iterator functions: randomized and sequencial implementations
+# Lazy chunk iterator functions: randomized and sequential implementations
 
 function chunk_iterator(file_paths::Vector{String}; chunksize=100,
                         buffersize=32, randomized=true)

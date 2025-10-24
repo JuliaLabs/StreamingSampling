@@ -1,6 +1,6 @@
 using StreamingSampling
 
-# Domain specific feature calculation
+# Domain specific functions
 include("utils/AtomsSampling.jl")
 
 # Basis function to compute ACE descriptors (features)
