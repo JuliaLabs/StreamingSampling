@@ -8,28 +8,32 @@ test_path = ["data/iso17/my_iso17_test.extxyz"]
 res_path  = "results-full-iso17/"
 run(`mkdir -p $res_path`)
 
-# Sampling experiments #########################################################
-
-# Setup StreamMaxEnt
-include("utils/atom-conf-features-extxyz.jl")
+# Initialize StreamMaxEnt sampler ##############################################
+read_element(io) = read_element_extxyz(io)
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 6,
+            polynomial_degree = 8,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
             rcutoff           = 4.4 );
-function create_feature(element::Vector)
+function create_feature(element::Vector; basis=basis)
     system = element[1]
     feature = sum(compute_local_descriptors(system, basis))
     return feature
 end
-sme = StreamMaxEnt(train_path; chunksize=2000, subchunksize=200)
+sme = StreamMaxEnt(train_path;
+                   read_element=read_element,
+                   create_feature=create_feature,
+                   chunksize=2000,
+                   subchunksize=200)
 open("sme-iso17.jls", "w") do io
     serialize(io, sme)
     flush(io)
 end
 #sme = deserialize("sme-iso17.jls")
+
+# Sampling experiments #########################################################
 
 # Define number of experiments
 n_experiments = 1
@@ -63,7 +67,11 @@ metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 # Compute reference energies
 s = 0.0
 n1 = 10_000
-ch, _ = chunk_iterator(train_path; chunksize=n1, buffersize=1, randomized=true)
+ch, _ = chunk_iterator(train_path;
+                       read_element=read_element,
+                       chunksize=n1,
+                       buffersize=1,
+                       randomized=true)
 c, _ = take!(ch)
 close(ch)
 for cj in c
@@ -85,7 +93,11 @@ for j in 1:n_experiments
     local ch 
 
     # Create test set
-    ch, _ = chunk_iterator(test_path; chunksize=m, buffersize=1, randomized=true)
+    ch, _ = chunk_iterator(test_path;
+                           read_element=read_element,
+                           chunksize=m,
+                           buffersize=1,
+                           randomized=true)
     _, test_inds = take!(ch)
     close(ch)
     test_inds = sort(test_inds)

@@ -1,35 +1,39 @@
 using StreamingSampling
 
+include("utils/AtomsSampling.jl")
+
 # Define paths and create experiment folder
 train_path = ["data/md17/aspirin-train.xyz"]
 test_path = ["data/md17/aspirin-test.xyz"]
 res_path  = "results-aspirin-md17/"
 run(`mkdir -p $res_path`)
 
-# Domain specific functions
-include("utils/atom-conf-features-xyz.jl")
+# Initialize StreamMaxEnt sampler ##############################################
+read_element(io) = read_element_xyz(io)
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 12,
+            polynomial_degree = 8,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
             rcutoff           = 4.4 );
-function create_feature(element::Vector)
+function create_feature(element::Vector; basis=basis)
     system = element[1]
     feature = sum(compute_local_descriptors(system, basis))
     return feature
 end
-
-# Sampling experiments #########################################################
-
-# Setup StreamMaxEnt
-sme = StreamMaxEnt(train_path; chunksize=2000, subchunksize=200)
-open("sme-aspirin-md17.jls", "w") do io
+sme = StreamMaxEnt(train_path;
+                   read_element=read_element,
+                   create_feature=create_feature,
+                   chunksize=2000,
+                   subchunksize=200)
+open("sme-aspirin-rmd17.jls", "w") do io
     serialize(io, sme)
     flush(io)
 end
-#sme = deserialize("sme-aspirin-md17.jls")
+#sme = deserialize("sme-aspirin-rmd17.jls")
+
+# Sampling experiments #########################################################
 
 # Define number of experiments
 n_experiments = 1
@@ -46,7 +50,7 @@ N = length(sme.weights)
 # Define basis for fitting
 basis_fitting = ACE(species           = [:C, :O, :H],
                     body_order        = 4,
-                    polynomial_degree = 6,
+                    polynomial_degree = 12,
                     wL                = 2.0,
                     csp               = 1.0,
                     r0                = 1.43,
@@ -63,7 +67,11 @@ metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 # Compute reference energies
 s = 0.0
 n1 = 10_000
-ch, _ = chunk_iterator(train_path; chunksize=n1, buffersize=1, randomized=true)
+ch, _ = chunk_iterator(train_path;
+                       read_element=read_element,
+                       chunksize=n1,
+                       buffersize=1,
+                       randomized=true)
 c, _ = take!(ch)
 close(ch)
 for cj in c
@@ -85,17 +93,21 @@ for j in 1:n_experiments
     local ch 
 
     # Create test set
-    ch, _ = chunk_iterator(test_path; chunksize=m, buffersize=1, randomized=true)
+    ch, _ = chunk_iterator(test_path;
+                           read_element=read_element,
+                           chunksize=m,
+                           buffersize=1,
+                           randomized=true)
     _, test_inds = take!(ch)
     close(ch)
     test_inds = sort(test_inds)
     test_confs = get_confs(test_path, test_inds)
     test_ds = calc_descr(test_confs, basis_fitting)
-    open("test-ds-aspirin-md17.jls", "w") do io
+    open("test-ds-aspirin-rmd17.jls", "w") do io
      serialize(io, test_ds)
      flush(io)
     end
-    #test_ds = deserialize("test-ds-aspirin-md17.jls")
+    #test_ds = deserialize("test-ds-aspirin-rmd17.jls")
     
     for n in sample_sizes
         # Sample training dataset using StreamMaxEnt ##################################

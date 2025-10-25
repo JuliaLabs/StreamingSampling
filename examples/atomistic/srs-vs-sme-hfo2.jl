@@ -73,8 +73,6 @@ ds_paths = "data/hfox_data_spencer/" .* ds_paths # N=30712
 res_path  = "results-hfo2/"
 run(`mkdir -p $res_path`)
 
-# Sampling experiments #########################################################
-
 # Define randomized training and test dataset.
 # Here, both datasets have elements of each file.
 confs = []
@@ -109,7 +107,11 @@ n_test = length(ds_test_rnd)
 # Compute reference energies
 s = 0.0
 m = 10_000
-ch, _ = chunk_iterator(ds_paths; chunksize=m, buffersize=1, randomized=true)
+ch, _ = chunk_iterator(ds_paths;
+                       read_element=read_element,
+                       chunksize=m,
+                       buffersize=1,
+                       randomized=true)
 c, _ = take!(ch)
 close(ch)
 for cj in c
@@ -136,26 +138,32 @@ basis_fitting = ACE(species           = [:Hf, :O],
 calc_descr!(ds_train_rnd, basis_fitting)
 calc_descr!(ds_test_rnd, basis_fitting)
 
-# Setup StreamMaxEnt
-include("utils/atom-conf-features-extxyz.jl")
-basis = ACE(species           = [:Hf, :O],
+# Initialize StreamMaxEnt sampler ##############################################
+read_element(io) = read_element_extxyz(io)
+basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 6,
+            polynomial_degree = 8,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
             rcutoff           = 4.4 );
-function create_feature(element::Configuration)
-    system = get_system(element)
+function create_feature(element::Vector; basis=basis)
+    system = element[1]
     feature = sum(compute_local_descriptors(system, basis))
     return feature
 end
-sme = StreamMaxEnt(ds_train_rnd.Configurations; chunksize=2000, subchunksize=200)
-open("sme-h2o2.jls", "w") do io
+sme = StreamMaxEnt(train_path;
+                   read_element=read_element,
+                   create_feature=create_feature,
+                   chunksize=2000,
+                   subchunksize=200)
+open("sme-hfo2.jls", "w") do io
     serialize(io, sme)
     flush(io)
 end
-#sme = deserialize("sme-h2o2.jls")
+#sme = deserialize("sme-hfo2.jls")
+
+# Sampling experiments #########################################################
 
 # Define number of experiments
 n_experiments = 1
