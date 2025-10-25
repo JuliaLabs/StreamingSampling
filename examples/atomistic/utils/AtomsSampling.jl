@@ -21,11 +21,11 @@ using Unitful
 import PotentialLearning.BasisPotential
 
 include("read-element.jl")
+include("xyz.jl")
 include("macros.jl")
 include("subtract_peratom_e.jl")
 include("aux_sample_functions.jl")
 #include("samplers.jl")
 include("plots.jl")
 include("plotmetrics.jl")
-#include("xyz.jl")
 
