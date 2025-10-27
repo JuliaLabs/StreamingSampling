@@ -27,7 +27,7 @@ function get_all_energies_w_onebody(
         energy = PotentialLearning.potential_energy(config, bp)
         for atom in get_system(config).particles
             species = atom.atomic_symbol
-            energy += vref_dict[species]          
+            energy += vref_dict[species]
         end
         push!(energies, energy)
     end
