@@ -12,7 +12,7 @@ using Statistics
                   "data/data3.txt",
                   "data/data4.txt"]
     println("Checking sample size.")
-    sme = StreamMaxEnt(file_paths; chunksize=200)
+    sme = StreamMaxEnt(file_paths; chunksize=1000, subchunksize=100)
     inds = StreamingSampling.sample(sme, 100)
     @test length(inds) == 100
 end
