@@ -1,6 +1,6 @@
 using StreamingSampling
 
-include("utils/AtomsSampling.jl")
+include("utils/utils.jl")
 
 # Datase files
 file_paths = ["data/iso17/my_iso17_train.extxyz"]

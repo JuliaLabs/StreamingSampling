@@ -1,6 +1,6 @@
 using StreamingSampling
 
-include("utils/AtomsSampling.jl")
+include("utils/utils.jl")
 
 # Define paths and create experiment folder
 ds_paths = ["Hf_mp1009460_EOS_form_sorted.extxyz",
@@ -107,6 +107,7 @@ n_test = length(ds_test_rnd)
 # Compute reference energies
 s = 0.0
 m = 10_000
+read_element(io) = read_element_extxyz(io)
 ch, _ = chunk_iterator(ds_paths;
                        read_element=read_element,
                        chunksize=m,

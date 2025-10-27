@@ -1,6 +1,6 @@
 using StreamingSampling
 
-include("utils/AtomsSampling.jl")
+include("utils/utils.jl")
 
 # Define paths and create experiment folder
 train_path = ["data/md17/aspirin-train.xyz"]
@@ -115,7 +115,7 @@ for j in 1:n_experiments
         #Load atomistic configurations
         train_confs = get_confs(train_path, train_inds)
         #Adjust reference energies (permanent change)
-        adjust_energies(train_confs,vref_dict)
+        adjust_energies(train_confs, vref_dict)
         # Compute dataset with energy and force descriptors
         train_ds = calc_descr(train_confs, basis_fitting)
         # Create result folder
@@ -139,6 +139,8 @@ for j in 1:n_experiments
         
         #Load atomistic configurations
         train_confs = get_confs(train_path, train_inds)
+        #Adjust reference energies (permanent change)
+        adjust_energies(train_confs, vref_dict)
         # Compute dataset with energy and force descriptors
         train_ds = calc_descr(train_confs, basis_fitting)
         # Create result folder

@@ -21,10 +21,10 @@ using Unitful
 import PotentialLearning.BasisPotential
 
 include("read-element.jl")
-include("xyz.jl")
+include("read-dataset.jl")
 include("macros.jl")
+include("fitting-utils.jl")
 include("subtract_peratom_e.jl")
-include("aux_sample_functions.jl")
 #include("samplers.jl")
 include("plots.jl")
 include("plotmetrics.jl")
