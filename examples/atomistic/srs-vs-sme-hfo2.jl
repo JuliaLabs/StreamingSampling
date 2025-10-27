@@ -233,5 +233,5 @@ for j in 1:n_experiments
 end
 
 # Postprocess ##################################################################
-plotmetrics2(res_path, "metrics.csv")
+plot_err_per_sample(res_path, "metrics.csv")
 

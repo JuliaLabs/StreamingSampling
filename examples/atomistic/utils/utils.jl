@@ -26,6 +26,6 @@ include("macros.jl")
 include("fitting-utils.jl")
 include("subtract_peratom_e.jl")
 #include("samplers.jl")
-include("plots.jl")
-include("plotmetrics.jl")
+include("plot-err-per-sample.jl")
+include("plot-err-ef.jl")
 

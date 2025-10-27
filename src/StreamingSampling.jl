@@ -34,7 +34,7 @@ include("Sampling.jl")
 include("StreamMaxEnt.jl")
 
 
-export Sampler, StreamMaxEnt, compute_weights, sample
+export Sampler, StreamMaxEnt, compute_weights, sample, chunk_iterator
 
 end # module
 
