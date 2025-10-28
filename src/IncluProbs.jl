@@ -1,51 +1,42 @@
+using JuMP
+using Ipopt
+
 # Inclusion probabilities
 # Transform weights into first order inclusion probabilities
-# 1: p(w)=w*x+y
+# 1: p(w)=n*w/sum(w)
 # 2: Sum constraint: sum(probs)=n => sum(p.(ws))=n
-# 3: Minimum probability constraint: p(w_min)=w_min
-#
-# Algebra: y = w_min*(1 - x)
-#          x = (n - N*w_min) / (sum(ws) - N*w_min)  == (n - N*w_min) / (N*(μ - w_min))
-function inclusion_prob(sampler::Sampler, n::Integer; highprec::Bool=false)
+function inclusion_prob(sampler::Sampler, n::Int)
     @views ws = sampler.weights
     N = length(ws)
-    @assert N > 0 "empty weights"
-
-    if !highprec
-        wmin = minimum(ws)
-        μ    = mean(ws)
-        den  = N*(μ - wmin)
-        num  = n - N*wmin
-
-        # If nearly singular, switch to high precision automatically
-        if den == 0 || abs(den) ≤ 1e-12 * max(1.0, abs(N*μ))
-            return inclusion_prob(sampler, n; highprec=true)
-        end
-
-        x = num / den
-        y = muladd(-wmin, x, wmin)              # y = wmin*(1 - x)
-        ps = @. muladd(x, ws, y)                # p = x*ws + y
-
-        return ps
-    else
-        # Compute coefficients in high precision, then cast back
-        ps = let
-            setprecision(256) do
-                W    = big.(ws)
-                NB   = big(N)
-                nB   = big(n)
-                wmin = minimum(W)
-                μ    = mean(W)
-                den  = NB*(μ - wmin)
-                num  = nB - NB*wmin
-                @assert den != 0 "Constraints are singular: mean(ws) == w_min"
-
-                x = num / den
-                y = wmin*(1 - x)
-                T = eltype(ws)
-                T.( @. x*W + y )
-            end
-        end
-        return ps
+    
+    # Start with probabilities proportional to weights
+    probs_proportional = n * ws / sum(ws)
+    
+    # Check if already in [0,1] - if so, we're done!
+    if all(0 .<= probs_proportional .<= 1)
+        return probs_proportional
     end
+    
+    # Otherwise, need to adjust with optimization
+    model = Model(Ipopt.Optimizer)
+    set_silent(model)
+    
+    # Direct variables for each probability
+    @variable(model, 0 <= p[i=1:N] <= 1)
+    
+    # Constraint: Sum equals n
+    @constraint(model, sum(p) == n)
+    
+    # Objective: minimize deviation from proportional probabilities
+    # This maintains the relative importance from weights
+    @objective(model, Min, sum((p[i] - probs_proportional[i])^2 for i in 1:N))
+    
+    optimize!(model)
+    
+    if termination_status(model) != MOI.OPTIMAL && termination_status(model) != MOI.LOCALLY_SOLVED
+        error("Could not find valid probabilities. Check that 0 < n <= N=$(N)")
+    end
+    
+    return value.(p)
 end
+

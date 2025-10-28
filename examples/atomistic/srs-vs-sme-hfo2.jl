@@ -1,3 +1,6 @@
+using Pkg
+Pkg.develop(path="../../")
+
 using StreamingSampling
 
 include("utils/utils.jl")
@@ -140,7 +143,7 @@ calc_descr!(ds_train_rnd, basis_fitting)
 calc_descr!(ds_test_rnd, basis_fitting)
 
 # Initialize StreamMaxEnt sampler ##############################################
-read_element(io) = read_element_extxyz(io)
+read_conf(x::Configuration) = x
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
             polynomial_degree = 8,
@@ -153,8 +156,8 @@ function create_feature(element::Vector; basis=basis)
     feature = sum(compute_local_descriptors(system, basis))
     return feature
 end
-sme = StreamMaxEnt(train_path;
-                   read_element=read_element,
+sme = StreamMaxEnt(ds_train_rnd.Configurations;
+                   read_element=read_conf,
                    create_feature=create_feature,
                    chunksize=2000,
                    subchunksize=200)

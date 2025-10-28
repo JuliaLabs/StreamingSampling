@@ -12,14 +12,14 @@ using Statistics
                   "data/data3.txt",
                   "data/data4.txt"]
     sme = StreamMaxEnt(file_paths; chunksize=1000, subchunksize=100)
-    n = 100
+    n = 2351
     inds = StreamingSampling.sample(sme, n)
     ps = StreamingSampling.inclusion_prob(sme, n)
     
     println("Checking sample size.")
     @test round(Int, sum(ps)) ≈ length(inds)
     
-    println("Checking sum(ps)==n.")
+    println("Checking sum(ps) ≈ n.")
     @test round(Int, sum(ps)) ≈ n
     
     println("Checking 0<=ps_i<=1.")

@@ -1,3 +1,6 @@
+#using Pkg
+#Pkg.develop(path="../../")
+
 using StreamingSampling
 
 include("utils/utils.jl")
