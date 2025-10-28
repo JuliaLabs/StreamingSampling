@@ -11,10 +11,19 @@ using Statistics
                   "data/data2.txt",
                   "data/data3.txt",
                   "data/data4.txt"]
-    println("Checking sample size.")
     sme = StreamMaxEnt(file_paths; chunksize=1000, subchunksize=100)
-    inds = StreamingSampling.sample(sme, 100)
-    @test length(inds) == 100
+    n = 100
+    inds = StreamingSampling.sample(sme, n)
+    ps = StreamingSampling.inclusion_prob(sme, n)
+    
+    println("Checking sample size.")
+    @test round(Int, sum(ps)) ≈ length(inds)
+    
+    println("Checking sum(ps)==n.")
+    @test round(Int, sum(ps)) ≈ n
+    
+    println("Checking 0<=ps_i<=1.")
+    @test all(0 .<= ps .<= 1)
 end
 
 @testset "UPmaxentropy." begin

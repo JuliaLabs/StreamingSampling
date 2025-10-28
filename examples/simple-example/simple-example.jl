@@ -1,4 +1,6 @@
 using StreamingSampling
+using LinearAlgebra
+using Distributions
 
 include("gen-data.jl")
 
@@ -8,5 +10,5 @@ generate_data(file_paths)
 
 # Sampling by StreamMaxEnt
 sme = StreamMaxEnt(file_paths; chunksize=200)
-inds = sample(sme, 100)
+inds = StreamingSampling.sample(sme, 100)
 
