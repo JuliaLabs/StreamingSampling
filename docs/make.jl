@@ -10,7 +10,7 @@ DocMeta.setdocmeta!(
     recursive = true,
 )
 
-ENV["BASE_PATH"]    = joinpath(@__DIR__, "../") 
+ENV["BASE_PATH"] = joinpath(@__DIR__, "../") 
 
 # Citations ####################################################################
 bib = CitationBibliography(joinpath(@__DIR__, "citation.bib"))
@@ -54,7 +54,7 @@ makedocs(
       expandfirst = [],
       draft = false,
       pages = ["Home" => "index.md",
-               "Install and run examples" => "install-and-run-examples.md",
+               "Install and run" => "install-and-run.md",
                "Basic examples" => basic_examples,
                "API" => "api.md"],
       format = Documenter.HTML(;

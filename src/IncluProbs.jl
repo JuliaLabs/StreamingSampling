@@ -1,6 +1,3 @@
-using JuMP
-using Ipopt
-
 # Inclusion probabilities
 # Transform weights into first order inclusion probabilities
 # 1: p(w)=n*w/sum(w)

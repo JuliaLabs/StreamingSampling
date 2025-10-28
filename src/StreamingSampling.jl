@@ -3,7 +3,8 @@ module StreamingSampling
 using Base.Threads
 using Determinantal
 using Distances
-using Distributions
+using Ipopt
+using JuMP
 using LinearAlgebra
 using Printf
 using Random
@@ -34,7 +35,7 @@ include("Sampling.jl")
 include("StreamMaxEnt.jl")
 
 
-export Sampler, StreamMaxEnt, compute_weights, sample, chunk_iterator
+export Sampler, StreamMaxEnt, compute_weights, sample, chunk_iterator, inclusion_prob
 
 end # module
 
