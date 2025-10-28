@@ -11,43 +11,43 @@ file_paths = [&quot;$path/data1.txt&quot;,
  &quot;/home/runner/work/StreamingSamp&quot;<span class="sgr93"><span class="sgr1"> ⋯ 27 bytes ⋯ </span></span>&quot;l/docs/..//test/data//data4.txt&quot;</code></pre><p>Sample by StreamMaxEnt</p><pre><code class="language-julia hljs">sme = StreamMaxEnt(file_paths; chunksize=500, subchunksize=100)
 n = 100
 inds = sample(sme, n)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">100-element Vector{Int64}:
-    8
-   21
-  137
-  216
-  222
-  272
-  274
-  300
-  330
-  647
+   30
+   72
+   94
+  138
+  166
+  212
+  229
+  238
+  249
+  282
     ⋮
- 3716
- 3720
- 3748
- 3788
- 3814
- 3942
- 3943
- 3997
- 4000</code></pre><p>Get first-order inclusion probabilities for a sample size n</p><pre><code class="language-julia hljs">ps = inclusion_prob(sme, n)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">4000-element Vector{Float64}:
+ 3584
+ 3602
+ 3701
+ 3702
+ 3805
+ 3850
+ 3876
+ 3888
+ 3976</code></pre><p>Get first-order inclusion probabilities for a sample size n</p><pre><code class="language-julia hljs">ps = inclusion_prob(sme, n)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">4000-element Vector{Float64}:
+ 0.024999999999999984
  0.02499999999999999
+ 0.02499999999999998
  0.02499999999999999
  0.02499999999999999
  0.02499999999999999
  0.02499999999999998
- 0.024999999999999967
- 0.02499999999999999
- 0.02499999999999998
+ 0.024999999999999984
  0.02499999999999999
  0.02499999999999999
  ⋮
+ 0.024999999999999953
  0.02499999999999999
+ 0.02499999999999998
  0.02499999999999999
+ 0.024999999999999967
+ 0.024999999999999974
+ 0.024999999999999956
  0.02499999999999999
- 0.02499999999999999
- 0.02499999999999999
- 0.02499999999999999
- 0.02499999999999999
- 0.02499999999999999
- 0.02499999999999999</code></pre><p>Compute summation of inclusion probabilities</p><pre><code class="language-julia hljs">s = round(Int, sum(ps))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">100</code></pre><p>Check sample size</p><pre><code class="language-julia hljs">length(inds) == s</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p>Check sum(ps) == n</p><pre><code class="language-julia hljs">s == n</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p>Check 0 &lt;= p_i &lt;= 1</p><pre><code class="language-julia hljs">all(0 .&lt;= ps .&lt;= 1)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../install-and-run/">« Install and run</a><a class="docs-footer-nextpage" href="../../../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Tuesday 28 October 2025 23:03">Tuesday 28 October 2025</span>. Using Julia version 1.12.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ 0.02499999999999999</code></pre><p>Compute summation of inclusion probabilities</p><pre><code class="language-julia hljs">s = round(Int, sum(ps))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">100</code></pre><p>Check sample size</p><pre><code class="language-julia hljs">length(inds) == s</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p>Check sum(ps) == n</p><pre><code class="language-julia hljs">s == n</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p>Check 0 &lt;= p_i &lt;= 1</p><pre><code class="language-julia hljs">all(0 .&lt;= ps .&lt;= 1)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../install-and-run/">« Install and run</a><a class="docs-footer-nextpage" href="../../../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Tuesday 28 October 2025 23:16">Tuesday 28 October 2025</span>. Using Julia version 1.12.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
