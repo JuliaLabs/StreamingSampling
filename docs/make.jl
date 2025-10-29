@@ -54,8 +54,8 @@ makedocs(
       expandfirst = [],
       draft = false,
       pages = ["Home" => "index.md",
-               "Install and run" => "install-and-run.md",
-               "Basic examples" => basic_examples,
+               "Install" => "install.md",
+               "Examples" => basic_examples,
                "API" => "api.md"],
       format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", "false") == "true",
