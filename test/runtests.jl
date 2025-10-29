@@ -12,13 +12,18 @@ using Statistics
                   "data/data3.txt",
                   "data/data4.txt"]
     # Compute streaming weights
-    ws = compute_weights(file_paths; chunksize=200, subchunksize=50)
+    ws = compute_weights(file_paths;
+                         chunksize=200,
+                         subchunksize=50)
 
     # Define sample size
     n = 1781
 
     # Sample by weighted sampling
-    inds = StatsBase.sample(1:length(ws), Weights(ws), n; replace=false)
+    inds = StatsBase.sample(1:length(ws),
+                            Weights(ws),
+                            n;
+                            replace=false)
     
     # Checks
     println("Checking sample size.")
@@ -32,7 +37,10 @@ end
                   "data/data3.txt",
                   "data/data4.txt"]
     # Compute streaming weights
-    ws = compute_weights(file_paths; chunksize=500, subchunksize=100)
+    ws = compute_weights(file_paths;
+                         chunksize=500,
+                         subchunksize=100,
+                         normalize=false)
 
     # Define sample size
     n = 2351
