@@ -31,7 +31,7 @@ include("RelFreqs.jl")
 
 # Sampling
 include("UPmaxentropy.jl")
-#include("StreamWeights.jl")
+include("StreamWeights.jl")
 include("StreamMaxEnt.jl")
 include("Sampling.jl")
 

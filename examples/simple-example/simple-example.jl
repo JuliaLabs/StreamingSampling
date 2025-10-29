@@ -1,5 +1,5 @@
 using StreamingSampling
-using StatsBase
+using StatsBase: sample, Weights
 
 # Define file paths
 base = haskey(ENV, "BASE_PATH") ? ENV["BASE_PATH"] : "../../"
@@ -9,22 +9,14 @@ file_paths = ["$path/data1.txt",
               "$path/data3.txt",
               "$path/data4.txt"];
 
-# Compute streaming weights
-ws = compute_weights(file_paths; chunksize=500, subchunksize=100)
-
 # Define sample size
 n = 100;
 
-# Compute first-order inclusion probabilities with sample size n
-ps = inclusion_prob(ws, n)
+# Streaming weighted sampling
+ws = compute_weights(file_paths; chunksize=500, subchunksize=100)
+inds_w = sample(1:length(ws), Weights(ws), n; replace=false)
 
-# Option 1: Sample by weighted sampling
-inds_w = StatsBase.sample(1:length(ws), Weights(ws), n; replace=false)
-
-# Option 2: Sample by weighted sampling and first-order inclusion probabilities
-inds_p = StatsBase.sample(1:length(ps), Weights(ps), n; replace=false)
-
-# Option 3: Sample by UPmaxentropy
-s = UPmaxentropy(ps)
+# Streaming maximum entropy sampling
+s = UPmaxentropy(inclusion_prob(ws, n))
 inds_me = findall(s .== 1)
 
