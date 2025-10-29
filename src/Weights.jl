@@ -7,7 +7,8 @@ function compute_weights(file_paths::Vector{String};
                          subchunksize=200,
                          buffersize=32,
                          max=Inf,
-                         randomized=true)
+                         randomized=true,
+                         normalize=true)
     ch, N = chunk_iterator(file_paths;
                            read_element=read_element,
                            chunksize=subchunksize, 
@@ -16,11 +17,16 @@ function compute_weights(file_paths::Vector{String};
     if max == Inf
         max = N
     end
-    return compute_weights(ch;
-                           create_feature=create_feature,
-                           chunksize=chunksize,
-                           subchunksize=subchunksize,
-                           max=max)
+    ws = compute_weights(ch;
+                         create_feature=create_feature,
+                         chunksize=chunksize,
+                         subchunksize=subchunksize,
+                         max=max)
+    if normalize
+        wmin, wmax = minimum(ws), maximum(ws)
+        ws = (ws .- wmin) ./ (wmax - wmin)
+    end
+    return ws
 end
 
 function compute_weights(A::Vector;
@@ -30,7 +36,8 @@ function compute_weights(A::Vector;
                          subchunksize=100,
                          buffersize=32,
                          max=Inf,
-                         randomized=true)
+                         randomized=true,
+                         normalize=true)
     ch, N = chunk_iterator(A;
                            read_element=read_element,
                            chunksize=subchunksize,
@@ -39,11 +46,16 @@ function compute_weights(A::Vector;
     if max == Inf
         max = N
     end
-    return compute_weights(ch;
-                           create_feature=create_feature,
-                           chunksize=chunksize,
-                           subchunksize=subchunksize,
-                           max=max)
+    ws = compute_weights(ch;
+                         create_feature=create_feature,
+                         chunksize=chunksize,
+                         subchunksize=subchunksize,
+                         max=max)
+    if normalize
+        wmin, wmax = minimum(ws), maximum(ws)
+        ws = (ws .- wmin) ./ (wmax - wmin)
+    end
+    return ws
 end
 
 function compute_weights(ch::Channel;
