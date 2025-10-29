@@ -2,6 +2,7 @@
 #Pkg.develop(path="../../")
 
 using StreamingSampling
+using StatsBase
 
 include("utils/utils.jl")
 
@@ -23,13 +24,16 @@ function create_feature(element::Vector; basis=basis)
     return feature
 end
 
-# Create sampler
-sampler = StreamMaxEnt(file_paths;
-                       read_element=read_element,
-                       create_feature=create_feature,
-                       chunksize=2000,
-                       subchunksize=200)
+# Compute streaming weights
+ws = compute_weights(file_paths;
+                     read_element=read_element,
+                     create_feature=create_feature,
+                     chunksize=2000,
+                     subchunksize=200)
 
-# Sample
-inds = sample(sampler, 10)
+# Define sample size
+n = 100
+
+# Sample by weighted sampling
+inds = StatsBase.sample(1:length(ws), Weights(ws), n; replace=false)
 

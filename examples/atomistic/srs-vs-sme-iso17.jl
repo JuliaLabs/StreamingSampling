@@ -11,7 +11,7 @@ test_path = ["data/iso17/my_iso17_test.extxyz"]
 res_path  = "results-iso17/"
 run(`mkdir -p $res_path`)
 
-# Initialize StreamMaxEnt sampler ##############################################
+# Initialize streaming sampling ################################################
 read_element(io) = read_element_extxyz(io)
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
@@ -25,16 +25,16 @@ function create_feature(element::Vector; basis=basis)
     feature = sum(compute_local_descriptors(system, basis))
     return feature
 end
-sme = StreamMaxEnt(train_path;
-                   read_element=read_element,
-                   create_feature=create_feature,
-                   chunksize=2000,
-                   subchunksize=200)
-open("sme-iso17.jls", "w") do io
-    serialize(io, sme)
+ws = compute_weights(train_path;
+                     read_element=read_element,
+                     create_feature=create_feature,
+                     chunksize=2000,
+                     subchunksize=200)
+open("ws-iso17.jls", "w") do io
+    serialize(io, ws)
     flush(io)
 end
-#sme = deserialize("sme-iso17.jls")
+#sme = deserialize("ws-iso17.jls")
 
 # Sampling experiments #########################################################
 
@@ -82,7 +82,7 @@ for cj in c
     energy = cj[2]
     s += energy
 end
-na = length(c[1][1]) # all conf. have the same no. of atoms
+na = length(c[1][1]) # a# Initialize streaming sampling ################################################ll conf. have the same no. of atoms
 avg_energy_per_atom = s/n1/na
 vref_dict = Dict(:H => avg_energy_per_atom,
                  :C => avg_energy_per_atom,
@@ -113,8 +113,9 @@ for j in 1:n_experiments
     #test_ds = deserialize("test-ds-sme-iso17.jls")
     
     for n in sample_sizes
-        # Sample training dataset using StreamMaxEnt ##################################
-        train_inds = sort(sample(sme, n))
+        # Sample training dataset using streaming weighted sampling ############
+        train_inds = StatsBase.sample(1:length(ws), Weights(ws), n;
+                     replace=false, ordered=true))
         #Load atomistic configurations
         train_confs = get_confs(train_path, train_inds)
         #Adjust reference energies (permanent change)
@@ -122,7 +123,7 @@ for j in 1:n_experiments
         # Compute dataset with energy and force descriptors
         train_ds = calc_descr(train_confs, basis_fitting)
         # Create result folder
-        curr_sampler = "sme"
+        curr_sampler = "sws"
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results

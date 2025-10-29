@@ -1,6 +1,6 @@
-# Weight computation: used to compute inclusion probabilities and sampling
+# General weight computation: used to compute inclusion probabilities and sampling
 
-function compute_weights(sampler::Sampler, file_paths::Vector{String};
+function compute_weights(file_paths::Vector{String};
                          read_element=read_element,
                          create_feature=create_feature,
                          chunksize=2000,
@@ -16,14 +16,14 @@ function compute_weights(sampler::Sampler, file_paths::Vector{String};
     if max == Inf
         max = N
     end
-    return compute_weights(sampler, ch;
+    return compute_weights(ch;
                            create_feature=create_feature,
                            chunksize=chunksize,
                            subchunksize=subchunksize,
                            max=max)
 end
 
-function compute_weights(sampler::Sampler, A::Vector;
+function compute_weights(A::Vector;
                          read_element=read_element,
                          create_feature=create_feature,
                          chunksize=1000,
@@ -39,14 +39,14 @@ function compute_weights(sampler::Sampler, A::Vector;
     if max == Inf
         max = N
     end
-    return compute_weights(sampler, ch;
+    return compute_weights(ch;
                            create_feature=create_feature,
                            chunksize=chunksize,
                            subchunksize=subchunksize,
                            max=max)
 end
 
-function compute_weights(sampler::Sampler, ch::Channel;
+function compute_weights(ch::Channel;
                          create_feature=create_feature,
                          chunksize=1000,
                          subchunksize=100,
@@ -67,7 +67,7 @@ function compute_weights(sampler::Sampler, ch::Channel;
     # Compute a feature for each element
     fs = create_features(elems; create_feature=create_feature)
     # Compute a weight for each feature
-    ws = compute_weights(sampler, fs)
+    ws = compute_chunk_weights(fs)
     min = minimum(ws)
     # Allocate global weights
     gws = fill(-1.0, max)
@@ -99,7 +99,7 @@ function compute_weights(sampler::Sampler, ch::Channel;
                                                  create_feature=create_feature)
         
         # Update weights: compute a weight for each feature
-        ws = compute_weights(sampler, fs)
+        ws = compute_chunk_weights(fs)
         min = minimum([ws; min])
         
         # Compute functions to impute values for merging process
@@ -148,3 +148,20 @@ function compute_weights(sampler::Sampler, ch::Channel;
     @printf("Processing complete. Weights: %d\n", length(gws))
     return gws
 end
+
+# Compute feature weights based on DPP inclusion probabilities
+function compute_chunk_weights(features::Matrix{Float64})
+    # Get number of features
+    N, _ = size(features)
+    # Compute pairwise Euclidean distances on the transposed features
+    D = pairwise(Distances.Euclidean(), features')
+    K = exp.(-D.^2)
+    # Form an L-ensemble based on the kernel matrix K
+    dpp = EllEnsemble(K)
+    # Scale so that the expected size is 1
+    rescale!(dpp, 1)
+    # Compute inclusion probabilities.
+    inclusion_probs = Determinantal.inclusion_prob(dpp)
+    return inclusion_probs
+end
+

@@ -142,7 +142,7 @@ basis_fitting = ACE(species           = [:Hf, :O],
 calc_descr!(ds_train_rnd, basis_fitting)
 calc_descr!(ds_test_rnd, basis_fitting)
 
-# Initialize StreamMaxEnt sampler ##############################################
+# Initialize streaming sampling ################################################
 read_conf(x::Configuration) = x
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
@@ -156,16 +156,16 @@ function create_feature(element::Vector; basis=basis)
     feature = sum(compute_local_descriptors(system, basis))
     return feature
 end
-sme = StreamMaxEnt(ds_train_rnd.Configurations;
-                   read_element=read_conf,
-                   create_feature=create_feature,
-                   chunksize=2000,
-                   subchunksize=200)
-open("sme-hfo2.jls", "w") do io
-    serialize(io, sme)
+ws = compute_weights(ds_train_rnd.Configurations;
+                     read_element=read_element,
+                     create_feature=create_feature,
+                     chunksize=2000,
+                     subchunksize=200)
+open("ws-hfo2.jls", "w") do io
+    serialize(io, ws)
     flush(io)
 end
-#sme = deserialize("sme-hfo2.jls")
+#ws = deserialize("ws-hfo2.jls")
 
 # Sampling experiments #########################################################
 
@@ -193,12 +193,13 @@ for j in 1:n_experiments
     global metrics
 
     for n in sample_sizes
-        # Sample training dataset using StreamMaxEnt ##################################
-        train_inds = sort(sample(sme, n))
+        # Sample training dataset using streaming weighted sampling ############
+        train_inds = StatsBase.sample(1:length(ws), Weights(ws), n;
+                     replace=false, ordered=true))
         #Load atomistic configurations
         train_ds = @views ds_train_rnd[train_inds]
         # Create result folder
-        curr_sampler = "sme"
+        curr_sampler = "sws"
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results

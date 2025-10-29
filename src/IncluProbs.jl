@@ -2,8 +2,7 @@
 # Transform weights into first order inclusion probabilities
 # 1: p(w)=n*w/sum(w)
 # 2: Sum constraint: sum(probs)=n => sum(p.(ws))=n
-function inclusion_prob(sampler::Sampler, n::Int)
-    @views ws = sampler.weights
+function inclusion_prob(ws::Vector, n::Int)
     N = length(ws)
     
     # Start with probabilities proportional to weights

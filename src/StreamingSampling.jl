@@ -31,11 +31,13 @@ include("RelFreqs.jl")
 
 # Sampling
 include("UPmaxentropy.jl")
-include("Sampling.jl")
+#include("StreamWeights.jl")
 include("StreamMaxEnt.jl")
+include("Sampling.jl")
 
 
-export Sampler, StreamMaxEnt, compute_weights, sample, chunk_iterator, inclusion_prob
+export Sampler, StreamMaxEnt, compute_weights, sample, chunk_iterator,
+       inclusion_prob, UPmaxentropy
 
 end # module
 

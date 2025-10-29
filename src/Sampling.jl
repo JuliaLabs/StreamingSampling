@@ -3,19 +3,17 @@
 # Main sampling function
 function sample(sampler::Sampler, n::Int64; replace=false)
     probs = inclusion_prob(sampler, n)
-    return sample(probs)
+    return sample(sampler, n, probs; replace=replace)
 end
 
-function sample(probs)
-    return findall(x -> x == 1, UPmaxentropy(probs))
+# UPmaxentropy sampling
+function sample(sampler::StreamMaxEnt, n, probs; replace=false)
+    return findall(UPmaxentropy(probs) .== 1)
 end
-
-#function sample(sampler::Sampler, n::Int64; replace=false)
-#    return sample(sampler.weights, n)
-#end
 
 # Weighted sampling
-#function sample(probabilities::Vector{Float64}, n::Int; replace=false)
-#    return StatsBase.sample(collect(1:length(probabilities)), 
-#                            Weights(probabilities), n; replace=replace)
-#end
+function sample(sampler::StreamWeights, n, probs; replace=false)
+    return StatsBase.sample(1:length(probs), Weights(probs), n;
+                            replace=replace)
+end
+

@@ -11,7 +11,7 @@ test_path = ["data/md17/aspirin-test.xyz"]
 res_path  = "results-aspirin-md17/"
 run(`mkdir -p $res_path`)
 
-# Initialize StreamMaxEnt sampler ##############################################
+# Initialize streaming sampling ################################################
 read_element(io) = read_element_xyz(io)
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
@@ -25,16 +25,16 @@ function create_feature(element::Vector; basis=basis)
     feature = sum(compute_local_descriptors(system, basis))
     return feature
 end
-sme = StreamMaxEnt(train_path;
-                   read_element=read_element,
-                   create_feature=create_feature,
-                   chunksize=2000,
-                   subchunksize=200)
-open("sme-aspirin-rmd17.jls", "w") do io
-    serialize(io, sme)
+ws = compute_weights(train_path;
+                     read_element=read_element,
+                     create_feature=create_feature,
+                     chunksize=2000,
+                     subchunksize=200)
+open("ws-aspirin-rmd17.jls", "w") do io
+    serialize(io, ws)
     flush(io)
 end
-#sme = deserialize("sme-aspirin-rmd17.jls")
+#ws = deserialize("ws-aspirin-rmd17.jls")
 
 # Sampling experiments #########################################################
 
@@ -113,8 +113,9 @@ for j in 1:n_experiments
     #test_ds = deserialize("test-ds-aspirin-rmd17.jls")
     
     for n in sample_sizes
-        # Sample training dataset using StreamMaxEnt ##################################
-        train_inds = sort(sample(sme, n))
+        # Sample training dataset using streaming weighted sampling ############
+        train_inds = StatsBase.sample(1:length(ws), Weights(ws), n;
+                     replace=false, ordered=true))
         #Load atomistic configurations
         train_confs = get_confs(train_path, train_inds)
         #Adjust reference energies (permanent change)
@@ -122,7 +123,7 @@ for j in 1:n_experiments
         # Compute dataset with energy and force descriptors
         train_ds = calc_descr(train_confs, basis_fitting)
         # Create result folder
-        curr_sampler = "sme"
+        curr_sampler = "sws"
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results
