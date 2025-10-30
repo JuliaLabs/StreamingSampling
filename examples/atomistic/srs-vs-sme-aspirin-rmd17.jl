@@ -48,7 +48,7 @@ sample_sizes = [1_000, 5_000, 10_000]
 m = 10_000
 
 # Full dataset size
-N = length(sme.weights)
+N = length(ws)
 
 # Define basis for fitting
 basis_fitting = ACE(species           = [:C, :O, :H],

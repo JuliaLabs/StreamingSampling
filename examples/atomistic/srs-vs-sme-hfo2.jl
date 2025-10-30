@@ -176,7 +176,7 @@ n_experiments = 1
 sample_sizes = [1_000, 5_000, 10_000]
 
 # Full dataset size
-N = length(sme.weights)
+N = length(ws)
 
 # Create metric dataframe
 metric_names = [:exp_number,  :method, :batch_size_prop, :batch_size, :time,

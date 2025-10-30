@@ -15,7 +15,7 @@ run(`mkdir -p $res_path`)
 read_element(io) = read_element_extxyz(io)
 basis = ACE(species           = [:C, :O, :H],
             body_order        = 4,
-            polynomial_degree = 8,
+            polynomial_degree = 6,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
@@ -48,7 +48,7 @@ sample_sizes = [1_000, 5_000, 10_000]
 m = 10_000
 
 # Full dataset size
-N = length(sme.weights)
+N = length(ws)
 
 # Define basis for fitting
 basis_fitting = ACE(species           = [:C, :O, :H],
