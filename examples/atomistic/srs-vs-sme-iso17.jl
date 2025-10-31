@@ -82,7 +82,7 @@ for cj in c
     energy = cj[2]
     s += energy
 end
-na = length(c[1][1]) # a# Initialize streaming sampling ################################################ll conf. have the same no. of atoms
+na = length(c[1][1]) # all conf. have the same no. of atoms
 avg_energy_per_atom = s/n1/na
 vref_dict = Dict(:H => avg_energy_per_atom,
                  :C => avg_energy_per_atom,
@@ -101,33 +101,39 @@ for j in 1:n_experiments
                            chunksize=m,
                            buffersize=1,
                            randomized=true)
-    _, test_inds = take!(ch)
+    cs, test_inds = take!(ch)
     close(ch)
-    test_inds = sort(test_inds)
-    test_confs = get_confs(test_path, test_inds)
-    test_ds = calc_descr(test_confs, basis_fitting)
-    open("test-ds-sme-iso17.jls", "w") do io
-     serialize(io, test_ds)
-     flush(io)
+    test_confs = []
+    for c in cs
+        system, energy, forces = c
+        conf = Configuration(system, Energy(energy),
+                             Forces([Force(f) for f in forces]))
+        push!(test_confs, conf)
     end
-    #test_ds = deserialize("test-ds-sme-iso17.jls")
+    ds_test = DataSet(test_confs)
+    ds_test = calc_descr!(ds_test, basis_fitting)
+    open("test-ds-iso17.jls", "w") do io
+        serialize(io, ds_test)
+        flush(io)
+    end
+    #ds_test = deserialize("test-ds-iso17.jls")
     
     for n in sample_sizes
         # Sample training dataset using streaming weighted sampling ############
         train_inds = StatsBase.sample(1:length(ws), Weights(ws), n;
-                     replace=false, ordered=true))
+                     replace=false, ordered=true)
         #Load atomistic configurations
-        train_confs = get_confs(train_path, train_inds)
+        ds_train = get_confs(train_path, read_element, train_inds)
         #Adjust reference energies (permanent change)
-        adjust_energies(train_confs, vref_dict)
+        adjust_energies!(ds_train, vref_dict)
         # Compute dataset with energy and force descriptors
-        train_ds = calc_descr(train_confs, basis_fitting)
+        ds_train = calc_descr!(ds_train, basis_fitting)
         # Create result folder
         curr_sampler = "sws"
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results
-        metrics_j = fit(exp_path, train_ds, test_ds, basis_fitting; vref_dict=vref_dict)
+        metrics_j = fit(exp_path, ds_train, ds_test, basis_fitting; vref_dict=vref_dict)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
                                       "batch_size_prop" => n/N,
@@ -142,17 +148,17 @@ for j in 1:n_experiments
         train_inds = randperm(N)[1:n]
         
         #Load atomistic configurations
-        train_confs = get_confs(train_path, train_inds)
+        ds_train = get_confs(train_path, read_element, train_inds)
         #Adjust reference energies (permanent change)
-        adjust_energies(train_confs, vref_dict)
+        adjust_energies!(ds_train, vref_dict)
         # Compute dataset with energy and force descriptors
-        train_ds = calc_descr(train_confs, basis_fitting)
+        ds_train = calc_descr!(ds_train, basis_fitting)
         # Create result folder
         curr_sampler = "srs"
         exp_path = "$res_path/$j-$curr_sampler-n$n/"
         run(`mkdir -p $exp_path`)
         # Fit and save results
-        metrics_j = fit(exp_path, train_ds, test_ds, basis_fitting; vref_dict=vref_dict)
+        metrics_j = fit(exp_path, ds_train, ds_test, basis_fitting; vref_dict=vref_dict)
         metrics_j = merge(OrderedDict("exp_number" => j,
                                       "method" => "$curr_sampler",
                                       "batch_size_prop" => n/N,
