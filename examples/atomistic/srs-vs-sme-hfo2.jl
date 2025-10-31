@@ -1,5 +1,5 @@
-using Pkg
-Pkg.develop(path="../../")
+#using Pkg
+#Pkg.develop(path="../../")
 
 using StreamingSampling
 
@@ -129,7 +129,7 @@ vref_dict = Dict(:Hf => avg_energy_per_atom,
                  :O => avg_energy_per_atom)
 
 #Adjust reference energies (permanent change)
-adjust_energies(ds_train_rnd,vref_dict)
+adjust_energies!(ds_train_rnd, vref_dict)
 
 # Define basis for fitting
 basis_fitting = ACE(species           = [:Hf, :O],
@@ -139,28 +139,26 @@ basis_fitting = ACE(species           = [:Hf, :O],
                     csp               = 1.0,
                     r0                = 1.43,
                     rcutoff           = 4.4 );
-calc_descr!(ds_train_rnd, basis_fitting)
-calc_descr!(ds_test_rnd, basis_fitting)
+ds_train_rnd = calc_descr!(ds_train_rnd, basis_fitting)
+ds_test_rnd = calc_descr!(ds_test_rnd, basis_fitting)
 
 # Initialize streaming sampling ################################################
-read_conf(x::Configuration) = x
-basis = ACE(species           = [:C, :O, :H],
+basis = ACE(species           = [:Hf, :O],
             body_order        = 4,
             polynomial_degree = 8,
             wL                = 2.0,
             csp               = 1.0,
             r0                = 1.43,
             rcutoff           = 4.4 );
-function create_feature(element::Vector; basis=basis)
-    system = element[1]
+function create_feature(element::Configuration; basis=basis)
+    system = get_system(element)
     feature = sum(compute_local_descriptors(system, basis))
     return feature
 end
 ws = compute_weights(ds_train_rnd.Configurations;
-                     read_element=read_element,
                      create_feature=create_feature,
                      chunksize=2000,
-                     subchunksize=200)
+                     subchunksize=4)
 open("ws-hfo2.jls", "w") do io
     serialize(io, ws)
     flush(io)
@@ -190,12 +188,12 @@ metrics = DataFrame([Any[] for _ in 1:length(metric_names)], metric_names)
 for j in 1:n_experiments
     println("Experiment $j")
 
-    global metrics
+    global metrics, ds_train_rnd, ds_test_rnd
 
     for n in sample_sizes
         # Sample training dataset using streaming weighted sampling ############
         train_inds = StatsBase.sample(1:length(ws), Weights(ws), n;
-                     replace=false, ordered=true))
+                     replace=false, ordered=true)
         #Load atomistic configurations
         train_ds = @views ds_train_rnd[train_inds]
         # Create result folder

@@ -30,16 +30,14 @@ function compute_weights(file_paths::Vector{String};
 end
 
 function compute_weights(A::Vector;
-                         read_element=read_element,
                          create_feature=create_feature,
-                         chunksize=1000,
-                         subchunksize=100,
+                         chunksize=2000,
+                         subchunksize=200,
                          buffersize=32,
                          max=Inf,
                          randomized=true,
                          normalize=true)
     ch, N = chunk_iterator(A;
-                           read_element=read_element,
                            chunksize=subchunksize,
                            buffersize=buffersize,
                            randomized=randomized)
@@ -60,8 +58,8 @@ end
 
 function compute_weights(ch::Channel;
                          create_feature=create_feature,
-                         chunksize=1000,
-                         subchunksize=100,
+                         chunksize=2000,
+                         subchunksize=200,
                          max=Inf)
     # Step 1: Setup stage ######################################################
     @printf("Computing sampler weights...\n")
