@@ -1,6 +1,9 @@
-function get_confs(path, inds)
+function get_confs(path, read_element, inds)
     confs = []
-    ch, N = chunk_iterator(train_path; chunksize=1000, randomized=false)
+    ch, N = chunk_iterator(path;
+                           read_element=read_element,
+                           chunksize=1000,
+                           randomized=false)
     k = 1
     for (c, ci) in ch
         j = 1

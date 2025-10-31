@@ -171,7 +171,7 @@ function compute_chunk_weights(features::Matrix{Float64})
     # Form an L-ensemble based on the kernel matrix K
     dpp = EllEnsemble(K)
     # Scale so that the expected size is 1
-    rescale!(dpp, 1)
+    rescale!(dpp, N ÷ 2)
     # Compute inclusion probabilities.
     inclusion_probs = Determinantal.inclusion_prob(dpp)
     return inclusion_probs

@@ -5,6 +5,7 @@ using DataFrames
 using DelimitedFiles
 using Determinantal
 using InteratomicPotentials
+using LinearAlgebra
 using LowRankApprox
 using Measures
 using OrderedCollections

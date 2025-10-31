@@ -10,7 +10,7 @@ function subtract_peratom_e(config::Configuration, vref_dict)
     Energy(new_e,e_unit)
 end
 
-function adjust_energies(ds, vref_dict)
+function adjust_energies!(ds, vref_dict)
     for config in ds
         new_energy = subtract_peratom_e(config,vref_dict)
         config.data[Energy] = new_energy

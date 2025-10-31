@@ -4,7 +4,7 @@ function plot_err_per_sample(res_path, metrics_filename)
     sort!(df, [:batch_size])
 
     srs = filter(:method => ==("srs"),   df)
-    sme = filter(:method => ==("sme"), df)
+    ss = filter(:method => ==("sws"), df)
 
     # ---------------- Percent formatting (round UP, fixed) ----------------
     # ≥ 1%  -> ceil to integer (no decimals)
@@ -24,9 +24,9 @@ function plot_err_per_sample(res_path, metrics_filename)
     end
 
     # ---------------- X tick labels ----------------
-    xs = sme.batch_size
+    xs = ss.batch_size
     xtick_labels = [string(bs, "\n", format_percent_roundup(prop))
-                    for (bs, prop) in zip(sme.batch_size, sme.batch_size_prop)]
+                    for (bs, prop) in zip(ss.batch_size, ss.batch_size_prop)]
 
     # ---------------- Colors ----------------
     black = RGB(0,0,0)
@@ -69,14 +69,14 @@ function plot_err_per_sample(res_path, metrics_filename)
     )
 
     pE_bottom = plot(
-        sme.batch_size, sme.e_test_mae;
+        ss.batch_size, ss.e_test_mae;
         color = red, lw = 5.5, marker = :utriangle,
         xlabel = "Training Dataset Size (Sample Size)",
         ylabel = "E MAE | eV/atom",
-        label = "SME",
+        label = "SWS",
         xticks = (xs, xtick_labels),
         legend = :topright,
-        ylims = padlims(sme.e_test_mae),
+        ylims = padlims(ss.e_test_mae),
     )
 
     energy_plot = plot(pE_top, pE_bottom; layout=(2,1), size=(1100,1100))
@@ -93,22 +93,18 @@ function plot_err_per_sample(res_path, metrics_filename)
     )
 
     pF_bottom = plot(
-        sme.batch_size, sme.f_test_mae;
+        ss.batch_size, ss.f_test_mae;
         color = red, lw = 5.5, marker = :utriangle,
         xlabel = "Training Dataset Size (Sample Size)",
         ylabel = "F MAE | eV/Å",
-        label = "SME",
+        label = "SWS",
         xticks = (xs, xtick_labels),
         legend = :topright,
-        ylims = padlims(SME.f_test_mae),
+        ylims = padlims(ss.f_test_mae),
     )
 
     force_plot = plot(pF_top, pF_bottom; layout=(2,1), size=(1100,1100))
     savefig(force_plot, "$res_path/f_test_mae_by_sample.pdf")
-
-    println("✅ Saved:")
-    println(" - e_test_mae_by_sample.pdf")
-    println(" - f_test_mae_by_sample.pdf")
 end
 
 function plot_err_per_sample_2(res_path, metrics_filename)
